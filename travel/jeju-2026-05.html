@@ -11,6 +11,8 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 :root {
   --bg: #ffffff;
@@ -44,24 +46,34 @@ body {
   letter-spacing: -0.005em;
 }
 
+/* --- User Picker Overlay --- */
+.user-overlay {
+  position: fixed; inset: 0; background: rgba(255,255,255,0.97);
+  z-index: 200; display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 32px;
+}
+.user-overlay.hidden { display: none; }
+.user-overlay h2 {
+  font-family: var(--serif-kr); font-weight: 500; font-size: 20px; color: var(--text);
+}
+.user-buttons { display: flex; gap: 20px; }
+.user-btn {
+  width: 80px; height: 80px; border-radius: 50%;
+  border: 2px solid var(--border); background: var(--surface-2);
+  font-family: var(--serif-en); font-size: 32px; font-weight: 600;
+  color: var(--text); cursor: pointer; transition: all 0.2s;
+}
+.user-btn:hover, .user-btn:active {
+  border-color: var(--accent); color: var(--accent); background: var(--accent-soft);
+}
+
+/* --- Now Pill --- */
 .now-pill {
-  position: fixed;
-  top: env(safe-area-inset-top, 0);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--accent);
-  color: white;
-  font-family: var(--serif-en);
-  font-style: italic;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  padding: 4px 14px 5px;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-  z-index: 100;
-  text-transform: uppercase;
-  display: none;
+  position: fixed; top: env(safe-area-inset-top, 0); left: 50%; transform: translateX(-50%);
+  background: var(--accent); color: white; font-family: var(--serif-en); font-style: italic;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.2em; padding: 4px 14px 5px;
+  border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;
+  z-index: 100; text-transform: uppercase; display: none;
   animation: pulseGlow 2.5s ease-in-out infinite;
 }
 .now-pill.active { display: block; }
@@ -70,329 +82,210 @@ body {
   50% { box-shadow: 0 0 24px 0 rgba(232, 90, 26, 0.4); }
 }
 
+/* --- User indicator --- */
+.user-indicator {
+  position: fixed; bottom: 20px; right: 20px; z-index: 100;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--accent); color: white; font-family: var(--serif-en);
+  font-size: 16px; font-weight: 600; display: flex; align-items: center;
+  justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
 .header {
-  text-align: center;
-  padding: 28px 0 36px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 36px;
-  animation: fadeIn 0.8s ease;
+  text-align: center; padding: 28px 0 36px; border-bottom: 1px solid var(--border);
+  margin-bottom: 36px; animation: fadeIn 0.8s ease;
 }
 .kicker {
-  font-family: var(--serif-en);
-  font-style: italic;
-  color: var(--accent);
-  letter-spacing: 0.35em;
-  font-size: 10px;
-  text-transform: uppercase;
-  margin-bottom: 14px;
+  font-family: var(--serif-en); font-style: italic; color: var(--accent);
+  letter-spacing: 0.35em; font-size: 10px; text-transform: uppercase; margin-bottom: 14px;
 }
 .title-mark {
-  display: inline-block;
-  width: 24px;
-  height: 1px;
-  background: var(--accent);
-  vertical-align: middle;
-  margin: 0 10px;
-  opacity: 0.6;
+  display: inline-block; width: 24px; height: 1px; background: var(--accent);
+  vertical-align: middle; margin: 0 10px; opacity: 0.6;
 }
-h1 {
-  font-family: var(--serif-kr);
-  font-weight: 600;
-  font-size: 38px;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  color: var(--text);
-}
-.date {
-  font-family: var(--serif-en);
-  font-size: 13px;
-  color: var(--text-dim);
-  letter-spacing: 0.25em;
-  margin-top: 14px;
-  font-weight: 400;
-}
-.legend-top {
-  display: flex;
-  gap: 18px;
-  justify-content: center;
-  margin-top: 22px;
-  font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
-}
+h1 { font-family: var(--serif-kr); font-weight: 600; font-size: 38px; letter-spacing: -0.02em; line-height: 1.1; color: var(--text); }
+.date { font-family: var(--serif-en); font-size: 13px; color: var(--text-dim); letter-spacing: 0.25em; margin-top: 14px; font-weight: 400; }
+.legend-top { display: flex; gap: 18px; justify-content: center; margin-top: 22px; font-size: 11px; color: var(--text-muted); letter-spacing: 0.05em; }
 .legend-top .li { display: inline-flex; align-items: center; gap: 7px; }
 .legend-top .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
 .legend-top .dash { width: 14px; height: 1px; background: var(--text-muted); }
 
-.section-header {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-  margin-bottom: 22px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+/* --- Top tabs --- */
+.top-tabs {
+  display: flex; gap: 0; margin-bottom: 36px;
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
 }
-.section-label {
-  font-family: var(--serif-en);
-  font-style: italic;
-  color: var(--accent);
-  font-size: 16px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+.top-tab {
+  flex: 1; padding: 10px 0; text-align: center;
+  font-size: 13px; font-weight: 500; letter-spacing: 0.02em;
+  color: var(--text-muted); background: var(--surface-2); cursor: pointer; transition: all 0.2s;
+  border-right: 1px solid var(--border);
 }
-.section-title {
-  font-family: var(--serif-kr);
-  font-weight: 500;
-  font-size: 17px;
-  color: var(--text);
-}
-.section-meta {
-  margin-left: auto;
-  font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
-  font-family: var(--sans);
-  font-weight: 400;
-  text-align: right;
-  line-height: 1.35;
-}
+.top-tab:last-child { border-right: none; }
+.top-tab.active { color: var(--accent); background: var(--surface); }
+.view-itinerary, .view-notes { display: none; }
+.view-itinerary.active, .view-notes.active { display: block; }
 
-.map-section {
-  margin-bottom: 56px;
-  animation: fadeIn 0.8s ease 0.1s backwards;
-}
-.day-map {
-  margin-bottom: 28px;
-}
-.day-map:last-child { margin-bottom: 0; }
-.day-map-header {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  margin-bottom: 12px;
-  padding-left: 4px;
-}
-.dm-day {
-  font-family: var(--serif-en);
-  font-style: italic;
-  color: var(--accent);
-  font-size: 14px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  font-weight: 500;
-}
-.dm-desc {
-  font-size: 12px;
-  color: var(--text-dim);
-  font-weight: 400;
-  letter-spacing: 0.02em;
-}
+.section-header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.section-label { font-family: var(--serif-en); font-style: italic; color: var(--accent); font-size: 16px; letter-spacing: 0.2em; text-transform: uppercase; }
+.section-title { font-family: var(--serif-kr); font-weight: 500; font-size: 17px; color: var(--text); }
+.section-meta { margin-left: auto; font-size: 11px; color: var(--text-muted); letter-spacing: 0.04em; font-family: var(--sans); font-weight: 400; text-align: right; line-height: 1.35; }
 
-.leaflet-map {
-  width: 100%;
-  height: 280px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  z-index: 1;
-}
-.leaflet-map .leaflet-popup-content-wrapper {
-  font-family: var(--sans);
-  font-size: 13px;
-  border-radius: 6px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
-}
+.map-section { margin-bottom: 56px; animation: fadeIn 0.8s ease 0.1s backwards; }
+.leaflet-map { width: 100%; height: 280px; border: 1px solid var(--border); border-radius: 4px; z-index: 1; }
+.leaflet-map .leaflet-popup-content-wrapper { font-family: var(--sans); font-size: 13px; border-radius: 6px; box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
 .leaflet-map .leaflet-popup-content { margin: 10px 14px; }
-.map-tab-bar {
-  display: flex;
-  gap: 0;
-  margin-bottom: 0;
-}
+.map-tab-bar { display: flex; gap: 0; margin-bottom: 0; }
 .map-tab {
-  flex: 1;
-  padding: 10px 0;
-  text-align: center;
-  font-family: var(--serif-en);
-  font-style: italic;
-  font-size: 13px;
-  letter-spacing: 0.15em;
-  color: var(--text-muted);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-bottom: none;
-  cursor: pointer;
-  transition: all 0.2s;
+  flex: 1; padding: 10px 0; text-align: center; font-family: var(--serif-en); font-style: italic;
+  font-size: 13px; letter-spacing: 0.15em; color: var(--text-muted); background: var(--surface-2);
+  border: 1px solid var(--border); border-bottom: none; cursor: pointer; transition: all 0.2s;
 }
 .map-tab:first-child { border-radius: 4px 0 0 0; }
 .map-tab:last-child { border-radius: 0 4px 0 0; }
-.map-tab.active {
-  color: var(--accent);
-  background: var(--surface);
-  border-bottom: 1px solid var(--surface);
-  font-weight: 500;
-}
-.map-tooltip {
-  font-family: var(--sans) !important;
-  font-size: 11px !important;
-  font-weight: 500 !important;
-  border: none !important;
-  background: rgba(255,255,255,0.92) !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15) !important;
-  padding: 3px 8px !important;
-  border-radius: 4px !important;
-}
+.map-tab.active { color: var(--accent); background: var(--surface); border-bottom: 1px solid var(--surface); font-weight: 500; }
+.map-tooltip { font-family: var(--sans) !important; font-size: 11px !important; font-weight: 500 !important; border: none !important; background: rgba(255,255,255,0.92) !important; box-shadow: 0 1px 4px rgba(0,0,0,0.15) !important; padding: 3px 8px !important; border-radius: 4px !important; }
 .map-tooltip::before { display: none !important; }
 
-.day-section {
-  margin-bottom: 56px;
-  animation: fadeIn 0.8s ease 0.3s backwards;
-}
+.day-section { margin-bottom: 56px; animation: fadeIn 0.8s ease 0.3s backwards; }
 .day-section.day-2 { animation-delay: 0.5s; }
-
 .timeline { display: flex; flex-direction: column; }
 
 .event {
-  display: grid;
-  grid-template-columns: 72px 1fr;
-  gap: 18px;
-  padding: 20px 0;
-  border-bottom: 1px solid var(--border-soft);
-  position: relative;
+  display: grid; grid-template-columns: 72px 1fr; gap: 18px; padding: 20px 0;
+  border-bottom: 1px solid var(--border-soft); position: relative;
   transition: opacity 0.4s ease, background 0.4s ease;
 }
 .event:last-child { border-bottom: none; }
-
 .event.fixed::before {
-  content: '';
-  position: absolute;
-  left: 60px;
-  top: 31px;
-  width: 5px;
-  height: 5px;
-  background: var(--accent);
-  border-radius: 50%;
-  box-shadow: 0 0 8px rgba(232, 90, 26, 0.4);
+  content: ''; position: absolute; left: 60px; top: 31px; width: 5px; height: 5px;
+  background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px rgba(232, 90, 26, 0.4);
 }
-
 .event.now {
   background: linear-gradient(90deg, var(--accent-soft) 0%, transparent 80%);
-  margin: 0 -16px;
-  padding: 20px 16px;
-  border-left: 2px solid var(--accent);
+  margin: 0 -16px; padding: 20px 16px; border-left: 2px solid var(--accent);
   border-bottom: 1px solid var(--border-soft);
 }
 .event.now .time { color: var(--accent); }
 .event.now::after {
-  content: 'NOW';
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  font-family: var(--serif-en);
-  font-style: italic;
-  font-size: 10px;
-  letter-spacing: 0.3em;
-  color: var(--accent);
+  content: 'NOW'; position: absolute; top: 8px; right: 12px; font-family: var(--serif-en);
+  font-style: italic; font-size: 10px; letter-spacing: 0.3em; color: var(--accent);
 }
-
 .event.past { opacity: 0.4; }
 .event.past .time { color: var(--text-muted); }
 
-.time {
-  font-family: var(--serif-en);
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: 0.01em;
-  color: var(--text);
-  line-height: 1;
-  padding-top: 4px;
-  font-variant-numeric: tabular-nums;
-}
-
+.time { font-family: var(--serif-en); font-size: 24px; font-weight: 400; letter-spacing: 0.01em; color: var(--text); line-height: 1; padding-top: 4px; font-variant-numeric: tabular-nums; }
 .content { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.activity {
-  font-size: 16px;
-  line-height: 1.4;
-  font-weight: 400;
-  color: var(--text);
-}
+.activity { font-size: 16px; line-height: 1.4; font-weight: 400; color: var(--text); }
 .event.fixed .activity { font-weight: 500; }
-
-.tag {
-  display: inline-block;
-  font-family: var(--serif-en);
-  font-style: italic;
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  color: var(--accent);
-  margin-left: 8px;
-  text-transform: uppercase;
-  vertical-align: 1px;
-}
+.tag { display: inline-block; font-family: var(--serif-en); font-style: italic; font-size: 10px; letter-spacing: 0.2em; color: var(--accent); margin-left: 8px; text-transform: uppercase; vertical-align: 1px; }
 .tag.dim { color: var(--text-muted); }
-
-.note {
-  font-size: 12.5px;
-  color: var(--text-dim);
-  line-height: 1.55;
-  margin-top: 2px;
-  font-weight: 400;
-}
+.note { font-size: 12.5px; color: var(--text-dim); line-height: 1.55; margin-top: 2px; font-weight: 400; }
 .note.warn { color: var(--accent); opacity: 0.85; }
-.note.warn::before { content: '⚠ '; font-style: normal; }
+.note.warn::before { content: '\26A0 '; font-style: normal; }
 
 .actions { display: flex; gap: 7px; margin-top: 11px; flex-wrap: wrap; }
 .action {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  color: var(--text-dim);
-  border: 1px solid var(--border);
-  border-radius: 100px;
-  text-decoration: none;
-  background: var(--surface);
-  transition: all 0.2s;
-  font-family: var(--sans);
+  display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; font-size: 11px;
+  font-weight: 400; letter-spacing: 0.04em; color: var(--text-dim); border: 1px solid var(--border);
+  border-radius: 100px; text-decoration: none; background: var(--surface); transition: all 0.2s; font-family: var(--sans);
 }
-.action:hover, .action:active {
-  color: var(--accent);
-  border-color: var(--accent-border);
-  background: var(--surface-2);
+.action:hover, .action:active { color: var(--accent); border-color: var(--accent-border); background: var(--surface-2); }
+
+/* --- Interaction buttons --- */
+.interact-bar {
+  display: flex; gap: 6px; margin-top: 10px; align-items: center;
 }
+.score-btn {
+  width: 32px; height: 28px; border: 1px solid var(--border); border-radius: 4px;
+  background: var(--surface); font-size: 14px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; transition: all 0.15s; color: var(--text-dim);
+}
+.score-btn:active { background: var(--accent-soft); }
+.score-display {
+  font-family: var(--serif-en); font-size: 14px; font-weight: 500; min-width: 24px;
+  text-align: center; color: var(--text);
+}
+.score-display.positive { color: var(--accent); }
+.score-display.negative { color: #999; }
+.comment-btn {
+  margin-left: auto; padding: 5px 10px; border: 1px solid var(--border); border-radius: 4px;
+  background: var(--surface); font-size: 12px; cursor: pointer; color: var(--text-dim);
+  transition: all 0.15s; display: flex; align-items: center; gap: 4px;
+}
+.comment-btn:active { background: var(--accent-soft); }
+.comment-btn .count { font-family: var(--serif-en); font-size: 11px; color: var(--accent); }
+
+/* --- Comment panel --- */
+.comment-panel {
+  display: none; margin-top: 10px; padding: 12px; background: var(--surface-2);
+  border-radius: 6px; border: 1px solid var(--border-soft);
+}
+.comment-panel.open { display: block; }
+.comment-input-row { display: flex; gap: 6px; }
+.comment-input {
+  flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px;
+  font-size: 13px; font-family: var(--sans); background: var(--surface); outline: none;
+}
+.comment-input:focus { border-color: var(--accent-border); }
+.comment-send {
+  padding: 8px 14px; border: none; border-radius: 4px; background: var(--accent);
+  color: white; font-size: 12px; font-weight: 500; cursor: pointer;
+}
+.comment-list { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.comment-item {
+  font-size: 12px; color: var(--text-dim); line-height: 1.5; padding: 6px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.comment-item:last-child { border-bottom: none; }
+.comment-item .who {
+  font-family: var(--serif-en); font-weight: 600; color: var(--accent); margin-right: 6px;
+}
+.comment-item .when { font-size: 10px; color: var(--text-muted); margin-left: 6px; }
+
+/* --- Day comment --- */
+.day-comment-section {
+  margin-top: 16px; padding: 16px; background: var(--surface-2); border-radius: 8px;
+  border: 1px solid var(--border-soft);
+}
+.day-comment-header {
+  font-family: var(--serif-en); font-style: italic; font-size: 12px; color: var(--accent);
+  letter-spacing: 0.15em; margin-bottom: 10px;
+}
+
+/* --- Notes view --- */
+.notes-section { margin-bottom: 40px; }
+.notes-section h3 { font-family: var(--serif-kr); font-size: 15px; font-weight: 500; margin-bottom: 12px; color: var(--text); }
+.note-card {
+  padding: 12px; margin-bottom: 8px; background: var(--surface-2); border-radius: 6px;
+  border-left: 3px solid var(--accent);
+}
+.note-card .nc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.note-card .nc-place { font-size: 13px; font-weight: 500; color: var(--text); }
+.note-card .nc-score { font-family: var(--serif-en); font-size: 14px; font-weight: 600; }
+.note-card .nc-score.positive { color: var(--accent); }
+.note-card .nc-score.negative { color: #999; }
+.note-card .nc-comments { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+.note-card .nc-comments span { display: block; margin-top: 2px; }
+.notes-empty { font-size: 13px; color: var(--text-muted); font-style: italic; text-align: center; padding: 40px 0; }
+.export-btn {
+  display: block; width: 100%; padding: 12px; border: 1px solid var(--accent); border-radius: 6px;
+  background: var(--surface); color: var(--accent); font-size: 13px; font-weight: 500;
+  text-align: center; cursor: pointer; margin-top: 20px;
+}
+.export-btn:active { background: var(--accent-soft); }
 
 .footer {
-  margin-top: 64px;
-  padding-top: 28px;
-  border-top: 1px solid var(--border);
-  text-align: center;
-  font-family: var(--serif-en);
-  font-style: italic;
-  font-size: 12px;
-  color: var(--text-muted);
-  letter-spacing: 0.15em;
+  margin-top: 64px; padding-top: 28px; border-top: 1px solid var(--border);
+  text-align: center; font-family: var(--serif-en); font-style: italic; font-size: 12px;
+  color: var(--text-muted); letter-spacing: 0.15em;
 }
-.footer .clock {
-  font-style: normal;
-  color: var(--text-dim);
-  font-size: 13px;
-  letter-spacing: 0.1em;
-  margin-bottom: 6px;
-  display: block;
-  font-variant-numeric: tabular-nums;
-  font-family: var(--sans);
-}
+.footer .clock { font-style: normal; color: var(--text-dim); font-size: 13px; letter-spacing: 0.1em; margin-bottom: 6px; display: block; font-variant-numeric: tabular-nums; font-family: var(--sans); }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @media (min-width: 600px) {
   body { padding: 48px 36px 100px; }
   h1 { font-size: 48px; }
-  .map-container { height: 440px; }
   .event { grid-template-columns: 84px 1fr; gap: 24px; }
   .event.fixed::before { left: 70px; }
   .time { font-size: 28px; }
@@ -401,6 +294,18 @@ h1 {
 </style>
 </head>
 <body>
+
+<!-- User Picker -->
+<div class="user-overlay" id="userOverlay">
+  <h2>누구세요?</h2>
+  <div class="user-buttons">
+    <button class="user-btn" onclick="selectUser('H')">H</button>
+    <button class="user-btn" onclick="selectUser('A')">A</button>
+  </div>
+</div>
+
+<!-- User indicator -->
+<div class="user-indicator" id="userBadge" style="display:none" onclick="switchUser()"></div>
 
 <div class="now-pill" id="nowPill">Now</div>
 
@@ -414,13 +319,21 @@ h1 {
   </div>
 </header>
 
+<!-- Top tabs -->
+<div class="top-tabs">
+  <div class="top-tab active" onclick="switchView('itinerary')">일정</div>
+  <div class="top-tab" onclick="switchView('notes')">모아보기</div>
+</div>
+
+<!-- ========== ITINERARY VIEW ========== -->
+<div class="view-itinerary active" id="viewItinerary">
+
 <section class="map-section">
   <div class="section-header">
     <span class="section-label">Geography</span>
     <span class="section-title">동선</span>
     <span class="section-meta">두 날 분리</span>
   </div>
-
   <div class="map-tab-bar">
     <div class="map-tab active" onclick="showDay(1)">Day 01 · 콤팩트</div>
     <div class="map-tab" onclick="showDay(2)">Day 02 · 확장</div>
@@ -434,10 +347,9 @@ h1 {
     <span class="section-title">탑동 디자인 코스</span>
     <span class="section-meta">5/5 화<br>어린이날</span>
   </div>
-
   <div class="timeline">
 
-    <div class="event fixed" data-start="2026-05-05T08:20">
+    <div class="event fixed" data-start="2026-05-05T08:20" data-id="d1-airport">
       <div class="time">08:20</div>
       <div class="content">
         <div class="activity">제주 도착<span class="tag">arrive</span></div>
@@ -448,7 +360,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event fixed" data-start="2026-05-05T09:00">
+    <div class="event fixed" data-start="2026-05-05T09:00" data-id="d1-ramada">
       <div class="time">09:00</div>
       <div class="content">
         <div class="activity">라마다 캐리어 보관</div>
@@ -460,7 +372,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event" data-start="2026-05-05T09:30">
+    <div class="event" data-start="2026-05-05T09:30" data-id="d1-sanjicheon">
       <div class="time">09:30</div>
       <div class="content">
         <div class="activity">산지천 산책</div>
@@ -471,7 +383,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event" data-start="2026-05-05T10:00">
+    <div class="event" data-start="2026-05-05T10:00" data-id="d1-dnd">
       <div class="time">10:00</div>
       <div class="content">
         <div class="activity">디앤디파트먼트 제주<span class="tag dim">Elephant Hip</span></div>
@@ -483,7 +395,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event" data-start="2026-05-05T12:00">
+    <div class="event" data-start="2026-05-05T12:00" data-id="d1-arario">
       <div class="time">12:00</div>
       <div class="content">
         <div class="activity">아라리오뮤지엄 탑동시네마</div>
@@ -495,7 +407,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event" data-start="2026-05-05T13:00">
+    <div class="event" data-start="2026-05-05T13:00" data-id="d1-tapdong">
       <div class="time">13:00</div>
       <div class="content">
         <div class="activity">탑동 · 원도심 가볍게<span class="tag dim">와인창고 후보</span></div>
@@ -507,7 +419,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event" data-start="2026-05-05T15:00">
+    <div class="event" data-start="2026-05-05T15:00" data-id="d1-checkin">
       <div class="time">15:00</div>
       <div class="content">
         <div class="activity">체크인 · 휴식</div>
@@ -515,7 +427,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event fixed" data-start="2026-05-05T18:00">
+    <div class="event fixed" data-start="2026-05-05T18:00" data-id="d1-kappo">
       <div class="time">18:00</div>
       <div class="content">
         <div class="activity">갓포제호<span class="tag">omakase</span></div>
@@ -528,6 +440,15 @@ h1 {
     </div>
 
   </div>
+
+  <div class="day-comment-section" data-day="day1">
+    <div class="day-comment-header">Day 01 — 오늘 한마디</div>
+    <div class="comment-input-row">
+      <input class="comment-input" placeholder="오늘 하루 어땠어?" maxlength="200">
+      <button class="comment-send" onclick="sendDayComment('day1', this)">보내기</button>
+    </div>
+    <div class="comment-list" data-day-comments="day1"></div>
+  </div>
 </section>
 
 <section class="day-section day-2">
@@ -536,10 +457,9 @@ h1 {
     <span class="section-title">러닝 + 강의 + 미식 마무리</span>
     <span class="section-meta">5/6 수<br>평일</span>
   </div>
-
   <div class="timeline">
 
-    <div class="event fixed" data-start="2026-05-06T06:30">
+    <div class="event fixed" data-start="2026-05-06T06:30" data-id="d2-running">
       <div class="time">06:30</div>
       <div class="content">
         <div class="activity">탑동 ~ 용두암 러닝<span class="tag dim">7km</span></div>
@@ -551,7 +471,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event fixed" data-start="2026-05-06T07:30">
+    <div class="event fixed" data-start="2026-05-06T07:30" data-id="d2-breakfast">
       <div class="time">07:30</div>
       <div class="content">
         <div class="activity">아침식사</div>
@@ -559,7 +479,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event fixed" data-start="2026-05-06T08:30">
+    <div class="event fixed" data-start="2026-05-06T08:30" data-id="d2-shower">
       <div class="time">08:30</div>
       <div class="content">
         <div class="activity">샤워</div>
@@ -567,7 +487,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event fixed" data-start="2026-05-06T09:30">
+    <div class="event fixed" data-start="2026-05-06T09:30" data-id="d2-lecture">
       <div class="time">09:30</div>
       <div class="content">
         <div class="activity">한국가스안전공사 제주본부<span class="tag">work</span></div>
@@ -578,7 +498,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event fixed" data-start="2026-05-06T12:00">
+    <div class="event fixed" data-start="2026-05-06T12:00" data-id="d2-lunch">
       <div class="time">12:00</div>
       <div class="content">
         <div class="activity">점심 · 일통이반</div>
@@ -589,7 +509,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event fixed" data-start="2026-05-06T14:00">
+    <div class="event fixed" data-start="2026-05-06T14:00" data-id="d2-coffee">
       <div class="time">14:00</div>
       <div class="content">
         <div class="activity">커피템플<span class="tag">합류</span></div>
@@ -601,7 +521,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event fixed" data-start="2026-05-06T16:00">
+    <div class="event fixed" data-start="2026-05-06T16:00" data-id="d2-wine">
       <div class="time">16:00</div>
       <div class="content">
         <div class="activity">와인창고<span class="tag dim">후보</span></div>
@@ -613,7 +533,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event fixed" data-start="2026-05-06T18:00">
+    <div class="event fixed" data-start="2026-05-06T18:00" data-id="d2-fish">
       <div class="time">18:00</div>
       <div class="content">
         <div class="activity">내도바당횟집<span class="tag">고등어회</span></div>
@@ -625,7 +545,7 @@ h1 {
       </div>
     </div>
 
-    <div class="event fixed" data-start="2026-05-06T20:40">
+    <div class="event fixed" data-start="2026-05-06T20:40" data-id="d2-depart">
       <div class="time">20:40</div>
       <div class="content">
         <div class="activity">제주공항<span class="tag">depart</span></div>
@@ -637,7 +557,28 @@ h1 {
     </div>
 
   </div>
+
+  <div class="day-comment-section" data-day="day2">
+    <div class="day-comment-header">Day 02 — 오늘 한마디</div>
+    <div class="comment-input-row">
+      <input class="comment-input" placeholder="오늘 하루 어땠어?" maxlength="200">
+      <button class="comment-send" onclick="sendDayComment('day2', this)">보내기</button>
+    </div>
+    <div class="comment-list" data-day-comments="day2"></div>
+  </div>
 </section>
+
+</div><!-- /viewItinerary -->
+
+<!-- ========== NOTES VIEW ========== -->
+<div class="view-notes" id="viewNotes">
+  <div class="section-header">
+    <span class="section-label">Notes</span>
+    <span class="section-title">모아보기</span>
+  </div>
+  <div id="notesContent"></div>
+  <button class="export-btn" onclick="exportNotes()">클립보드에 복사 (노션 붙여넣기용)</button>
+</div>
 
 <footer class="footer">
   <span class="clock" id="clock">--:--</span>
@@ -645,6 +586,293 @@ h1 {
 </footer>
 
 <script>
+// --- Firebase ---
+firebase.initializeApp({
+  apiKey: "AIzaSyAhDqemmbPvvuBX12cEmCOLqkNb0odGrYI",
+  authDomain: "mini-academy-7326b.firebaseapp.com",
+  projectId: "mini-academy-7326b",
+  storageBucket: "mini-academy-7326b.firebasestorage.app",
+  messagingSenderId: "430020990533",
+  appId: "1:430020990533:web:92da4cf178e9c2fd2b352c"
+});
+var db = firebase.firestore();
+var tripRef = db.collection('trips').doc('jeju-2026-05');
+
+// --- User ---
+var currentUser = localStorage.getItem('jeju-user');
+function selectUser(u) {
+  currentUser = u;
+  localStorage.setItem('jeju-user', u);
+  document.getElementById('userOverlay').classList.add('hidden');
+  document.getElementById('userBadge').style.display = 'flex';
+  document.getElementById('userBadge').textContent = u;
+}
+function switchUser() {
+  currentUser = currentUser === 'H' ? 'A' : 'H';
+  localStorage.setItem('jeju-user', currentUser);
+  document.getElementById('userBadge').textContent = currentUser;
+}
+if (currentUser) {
+  document.getElementById('userOverlay').classList.add('hidden');
+  document.getElementById('userBadge').style.display = 'flex';
+  document.getElementById('userBadge').textContent = currentUser;
+}
+
+// --- View switch ---
+function switchView(view) {
+  document.querySelectorAll('.top-tab').forEach(function(t, i) {
+    t.classList.toggle('active', (view === 'itinerary' ? i === 0 : i === 1));
+  });
+  document.getElementById('viewItinerary').classList.toggle('active', view === 'itinerary');
+  document.getElementById('viewNotes').classList.toggle('active', view === 'notes');
+  if (view === 'notes') renderNotes();
+}
+
+// --- Inject interact bars into events ---
+document.querySelectorAll('.event[data-id]').forEach(function(evt) {
+  var id = evt.dataset.id;
+  var content = evt.querySelector('.content');
+
+  var bar = document.createElement('div');
+  bar.className = 'interact-bar';
+  bar.innerHTML =
+    '<button class="score-btn" onclick="vote(\'' + id + '\',-1)">-</button>' +
+    '<span class="score-display" data-score-display="' + id + '">0</span>' +
+    '<button class="score-btn" onclick="vote(\'' + id + '\',1)">+</button>' +
+    '<button class="comment-btn" onclick="toggleComment(\'' + id + '\',this)">' +
+    '\uD83D\uDCAC <span class="count" data-comment-count="' + id + '"></span></button>';
+  content.appendChild(bar);
+
+  var panel = document.createElement('div');
+  panel.className = 'comment-panel';
+  panel.setAttribute('data-panel', id);
+  panel.innerHTML =
+    '<div class="comment-input-row">' +
+    '<input class="comment-input" placeholder="메모, 비용, 감상 아무거나" maxlength="200" onkeydown="if(event.key===\'Enter\')sendComment(\'' + id + '\',this)">' +
+    '<button class="comment-send" onclick="sendComment(\'' + id + '\',this.previousElementSibling)">보내기</button>' +
+    '</div>' +
+    '<div class="comment-list" data-comments="' + id + '"></div>';
+  content.appendChild(panel);
+});
+
+// --- Score ---
+function vote(id, delta) {
+  if (!currentUser) return;
+  var ref = tripRef.collection('scores').doc(id);
+  ref.get().then(function(doc) {
+    var data = doc.exists ? doc.data() : {};
+    var key = currentUser;
+    var cur = data[key] || 0;
+    var next = cur + delta;
+    var update = {};
+    update[key] = next;
+    return ref.set(update, { merge: true });
+  });
+}
+
+// Listen scores
+tripRef.collection('scores').onSnapshot(function(snap) {
+  snap.forEach(function(doc) {
+    var id = doc.id;
+    var data = doc.data();
+    var total = (data.H || 0) + (data.A || 0);
+    var el = document.querySelector('[data-score-display="' + id + '"]');
+    if (el) {
+      el.textContent = total > 0 ? '+' + total : total;
+      el.className = 'score-display' + (total > 0 ? ' positive' : total < 0 ? ' negative' : '');
+    }
+  });
+});
+
+// --- Comments ---
+function toggleComment(id) {
+  var panel = document.querySelector('[data-panel="' + id + '"]');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) {
+    panel.querySelector('.comment-input').focus();
+  }
+}
+
+function sendComment(id, input) {
+  var text = input.value.trim();
+  if (!text || !currentUser) return;
+  tripRef.collection('comments').add({
+    eventId: id,
+    user: currentUser,
+    text: text,
+    ts: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  input.value = '';
+}
+
+function sendDayComment(day, btn) {
+  var input = btn.previousElementSibling;
+  var text = input.value.trim();
+  if (!text || !currentUser) return;
+  tripRef.collection('dayComments').add({
+    day: day,
+    user: currentUser,
+    text: text,
+    ts: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  input.value = '';
+}
+
+// Listen comments
+tripRef.collection('comments').orderBy('ts', 'asc').onSnapshot(function(snap) {
+  var byEvent = {};
+  snap.forEach(function(doc) {
+    var d = doc.data();
+    if (!byEvent[d.eventId]) byEvent[d.eventId] = [];
+    byEvent[d.eventId].push(d);
+  });
+
+  document.querySelectorAll('[data-comments]').forEach(function(el) {
+    var id = el.dataset.comments;
+    var items = byEvent[id] || [];
+    el.innerHTML = items.map(function(c) {
+      var time = c.ts ? new Date(c.ts.seconds * 1000) : null;
+      var timeStr = time ? (time.getMonth()+1) + '/' + time.getDate() + ' ' + String(time.getHours()).padStart(2,'0') + ':' + String(time.getMinutes()).padStart(2,'0') : '';
+      return '<div class="comment-item"><span class="who">' + c.user + '</span>' + c.text + '<span class="when">' + timeStr + '</span></div>';
+    }).join('');
+  });
+
+  document.querySelectorAll('[data-comment-count]').forEach(function(el) {
+    var id = el.dataset.commentCount;
+    var count = (byEvent[id] || []).length;
+    el.textContent = count > 0 ? count : '';
+  });
+});
+
+// Listen day comments
+tripRef.collection('dayComments').orderBy('ts', 'asc').onSnapshot(function(snap) {
+  var byDay = {};
+  snap.forEach(function(doc) {
+    var d = doc.data();
+    if (!byDay[d.day]) byDay[d.day] = [];
+    byDay[d.day].push(d);
+  });
+
+  document.querySelectorAll('[data-day-comments]').forEach(function(el) {
+    var day = el.dataset.dayComments;
+    var items = byDay[day] || [];
+    el.innerHTML = items.map(function(c) {
+      var time = c.ts ? new Date(c.ts.seconds * 1000) : null;
+      var timeStr = time ? String(time.getHours()).padStart(2,'0') + ':' + String(time.getMinutes()).padStart(2,'0') : '';
+      return '<div class="comment-item"><span class="who">' + c.user + '</span>' + c.text + '<span class="when">' + timeStr + '</span></div>';
+    }).join('');
+  });
+});
+
+// --- Notes view ---
+var allScores = {}, allComments = {}, allDayComments = {};
+tripRef.collection('scores').onSnapshot(function(snap) {
+  allScores = {};
+  snap.forEach(function(doc) { allScores[doc.id] = doc.data(); });
+});
+tripRef.collection('comments').orderBy('ts', 'asc').onSnapshot(function(snap) {
+  allComments = {};
+  snap.forEach(function(doc) {
+    var d = doc.data();
+    if (!allComments[d.eventId]) allComments[d.eventId] = [];
+    allComments[d.eventId].push(d);
+  });
+});
+tripRef.collection('dayComments').orderBy('ts', 'asc').onSnapshot(function(snap) {
+  allDayComments = {};
+  snap.forEach(function(doc) {
+    var d = doc.data();
+    if (!allDayComments[d.day]) allDayComments[d.day] = [];
+    allDayComments[d.day].push(d);
+  });
+});
+
+function renderNotes() {
+  var html = '';
+  var events = document.querySelectorAll('.event[data-id]');
+  var hasData = false;
+
+  ['day-1', 'day-2'].forEach(function(dayCls, dayIdx) {
+    var dayKey = 'day' + (dayIdx + 1);
+    var dayLabel = 'Day 0' + (dayIdx + 1);
+    var dayEvents = [];
+
+    events.forEach(function(evt) {
+      if (evt.closest('.day-section.' + dayCls)) dayEvents.push(evt);
+    });
+
+    var dayHtml = '';
+    dayEvents.forEach(function(evt) {
+      var id = evt.dataset.id;
+      var name = evt.querySelector('.activity').textContent.trim();
+      var scoreData = allScores[id] || {};
+      var total = (scoreData.H || 0) + (scoreData.A || 0);
+      var comments = allComments[id] || [];
+
+      if (total !== 0 || comments.length > 0) {
+        hasData = true;
+        var scoreClass = total > 0 ? ' positive' : total < 0 ? ' negative' : '';
+        dayHtml += '<div class="note-card"><div class="nc-header"><span class="nc-place">' + name + '</span>';
+        if (total !== 0) dayHtml += '<span class="nc-score' + scoreClass + '">' + (total > 0 ? '+' : '') + total + '</span>';
+        dayHtml += '</div>';
+        if (comments.length) {
+          dayHtml += '<div class="nc-comments">';
+          comments.forEach(function(c) { dayHtml += '<span><b>' + c.user + '</b> ' + c.text + '</span>'; });
+          dayHtml += '</div>';
+        }
+        dayHtml += '</div>';
+      }
+    });
+
+    var dayC = allDayComments[dayKey] || [];
+    if (dayC.length) {
+      hasData = true;
+      dayHtml += '<div class="note-card" style="border-left-color:#2563eb"><div class="nc-header"><span class="nc-place">' + dayLabel + ' 총평</span></div><div class="nc-comments">';
+      dayC.forEach(function(c) { dayHtml += '<span><b>' + c.user + '</b> ' + c.text + '</span>'; });
+      dayHtml += '</div></div>';
+    }
+
+    if (dayHtml) {
+      html += '<div class="notes-section"><h3>' + dayLabel + '</h3>' + dayHtml + '</div>';
+    }
+  });
+
+  document.getElementById('notesContent').innerHTML = hasData ? html : '<div class="notes-empty">아직 기록이 없어요</div>';
+}
+
+function exportNotes() {
+  var lines = [];
+  var events = document.querySelectorAll('.event[data-id]');
+
+  ['day-1', 'day-2'].forEach(function(dayCls, dayIdx) {
+    var dayKey = 'day' + (dayIdx + 1);
+    lines.push('## Day 0' + (dayIdx + 1));
+    events.forEach(function(evt) {
+      if (!evt.closest('.day-section.' + dayCls)) return;
+      var id = evt.dataset.id;
+      var name = evt.querySelector('.activity').textContent.trim();
+      var scoreData = allScores[id] || {};
+      var total = (scoreData.H || 0) + (scoreData.A || 0);
+      var comments = allComments[id] || [];
+      if (total !== 0 || comments.length > 0) {
+        var scoreTxt = total !== 0 ? ' [' + (total > 0 ? '+' : '') + total + ']' : '';
+        lines.push('- ' + name + scoreTxt);
+        comments.forEach(function(c) { lines.push('  - ' + c.user + ': ' + c.text); });
+      }
+    });
+    var dayC = allDayComments[dayKey] || [];
+    if (dayC.length) {
+      lines.push('- 총평');
+      dayC.forEach(function(c) { lines.push('  - ' + c.user + ': ' + c.text); });
+    }
+    lines.push('');
+  });
+
+  navigator.clipboard.writeText(lines.join('\n')).then(function() {
+    alert('복사 완료! 노션에 붙여넣기 하세요.');
+  });
+}
+
 // --- Leaflet Map ---
 (function() {
   var map = L.map('map', { zoomControl: false, attributionControl: false }).setView([33.505, 126.525], 14);
@@ -652,21 +880,18 @@ h1 {
   L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(map);
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-    maxZoom: 18
+    attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 18
   }).addTo(map);
 
   function makeIcon(color, size) {
     return L.divIcon({
       className: '',
       html: '<div style="width:'+size+'px;height:'+size+'px;background:'+color+';border:2.5px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>',
-      iconSize: [size, size],
-      iconAnchor: [size/2, size/2]
+      iconSize: [size, size], iconAnchor: [size/2, size/2]
     });
   }
 
-  var accent = '#e85a1a';
-  var day2color = '#2563eb';
+  var accent = '#e85a1a', day2color = '#2563eb';
 
   var day1Places = [
     { name: '제주공항', lat: 33.5104, lng: 126.4914, fixed: true },
@@ -688,18 +913,14 @@ h1 {
     { name: '제주공항', lat: 33.5104, lng: 126.4914, fixed: true }
   ];
 
-  var day1Layer = L.layerGroup();
-  var day2Layer = L.layerGroup();
+  var day1Layer = L.layerGroup(), day2Layer = L.layerGroup();
 
   function addMarkers(places, layer, color) {
     var coords = [];
     places.forEach(function(p) {
       var size = p.fixed ? 18 : 12;
       var marker = L.marker([p.lat, p.lng], { icon: makeIcon(color, size) });
-      marker.bindTooltip(p.name, {
-        permanent: true, direction: 'top', offset: [0, -size/2 - 2],
-        className: 'map-tooltip'
-      });
+      marker.bindTooltip(p.name, { permanent: true, direction: 'top', offset: [0, -size/2 - 2], className: 'map-tooltip' });
       marker.addTo(layer);
       coords.push([p.lat, p.lng]);
     });
@@ -708,26 +929,13 @@ h1 {
 
   addMarkers(day1Places, day1Layer, accent);
   addMarkers(day2Places, day2Layer, day2color);
-
   day1Layer.addTo(map);
-  var currentDay = 1;
 
   window.showDay = function(day) {
-    var tabs = document.querySelectorAll('.map-tab');
-    tabs.forEach(function(t, i) { t.classList.toggle('active', i === day - 1); });
-
-    if (day === 1) {
-      map.removeLayer(day2Layer);
-      day1Layer.addTo(map);
-      map.fitBounds(day1Places.map(function(p) { return [p.lat, p.lng]; }), { padding: [30, 30] });
-    } else {
-      map.removeLayer(day1Layer);
-      day2Layer.addTo(map);
-      map.fitBounds(day2Places.map(function(p) { return [p.lat, p.lng]; }), { padding: [30, 30] });
-    }
-    currentDay = day;
+    document.querySelectorAll('.map-tab').forEach(function(t, i) { t.classList.toggle('active', i === day - 1); });
+    if (day === 1) { map.removeLayer(day2Layer); day1Layer.addTo(map); map.fitBounds(day1Places.map(function(p) { return [p.lat, p.lng]; }), { padding: [30, 30] }); }
+    else { map.removeLayer(day1Layer); day2Layer.addTo(map); map.fitBounds(day2Places.map(function(p) { return [p.lat, p.lng]; }), { padding: [30, 30] }); }
   };
-
   map.fitBounds(day1Places.map(function(p) { return [p.lat, p.lng]; }), { padding: [30, 30] });
 })();
 
@@ -740,42 +948,24 @@ h1 {
   function update() {
     var now = new Date();
     var activeFound = false;
-
-    var sorted = Array.from(events).map(function(el) {
-      return { el: el, start: new Date(el.dataset.start) };
-    }).sort(function(a, b) { return a.start - b.start; });
-
+    var sorted = Array.from(events).map(function(el) { return { el: el, start: new Date(el.dataset.start) }; }).sort(function(a, b) { return a.start - b.start; });
     sorted.forEach(function(evt, idx) {
       evt.el.classList.remove('now', 'past');
       var next = sorted[idx + 1];
       var end = next ? next.start : new Date(evt.start.getTime() + 90 * 60 * 1000);
-
-      if (now >= end) {
-        evt.el.classList.add('past');
-      } else if (now >= evt.start) {
-        evt.el.classList.add('now');
-        activeFound = true;
-      }
+      if (now >= end) { evt.el.classList.add('past'); }
+      else if (now >= evt.start) { evt.el.classList.add('now'); activeFound = true; }
     });
-
     nowPill.classList.toggle('active', activeFound);
-
     var hh = String(now.getHours()).padStart(2, '0');
     var mm = String(now.getMinutes()).padStart(2, '0');
     var dd = String(now.getDate()).padStart(2, '0');
     var mo = String(now.getMonth() + 1).padStart(2, '0');
     clock.textContent = mo + '/' + dd + '  ' + hh + ':' + mm;
   }
-
   update();
   setInterval(update, 30000);
-
-  setTimeout(function() {
-    var nowEvt = document.querySelector('.event.now');
-    if (nowEvt) {
-      nowEvt.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }, 600);
+  setTimeout(function() { var e = document.querySelector('.event.now'); if (e) e.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 600);
 })();
 </script>
 
