@@ -9,6 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Noto+Serif+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root {
   --bg: #ffffff;
@@ -186,47 +188,59 @@ h1 {
   letter-spacing: 0.02em;
 }
 
-.route-svg {
+.leaflet-map {
   width: 100%;
-  height: auto;
-  display: block;
+  height: 280px;
   border: 1px solid var(--border);
   border-radius: 4px;
-  background: #fbfaf6;
+  z-index: 1;
 }
-.route-svg text {
+.leaflet-map .leaflet-popup-content-wrapper {
   font-family: var(--sans);
-}
-.route-svg .area-label {
-  font-family: var(--serif-en);
-  font-style: italic;
-  font-size: 9px;
-  fill: rgba(100, 130, 160, 0.55);
-  letter-spacing: 0.3em;
-  font-weight: 500;
-}
-.route-svg .map-label {
   font-size: 13px;
-  font-weight: 500;
-  fill: #1a1814;
-  stroke: white;
-  stroke-width: 3.5;
-  paint-order: stroke fill;
-  letter-spacing: -0.01em;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
 }
-.route-svg .compass-n {
+.leaflet-map .leaflet-popup-content { margin: 10px 14px; }
+.map-tab-bar {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0;
+}
+.map-tab {
+  flex: 1;
+  padding: 10px 0;
+  text-align: center;
   font-family: var(--serif-en);
   font-style: italic;
-  font-size: 11px;
-  fill: #a09b94;
-  letter-spacing: 0.2em;
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.map-tab:first-child { border-radius: 4px 0 0 0; }
+.map-tab:last-child { border-radius: 0 4px 0 0; }
+.map-tab.active {
+  color: var(--accent);
+  background: var(--surface);
+  border-bottom: 1px solid var(--surface);
   font-weight: 500;
 }
-.route-svg .scale-text {
-  font-size: 9px;
-  fill: var(--text-dim);
-  letter-spacing: 0.05em;
+.map-tooltip {
+  font-family: var(--sans) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  border: none !important;
+  background: rgba(255,255,255,0.92) !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15) !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
 }
+.map-tooltip::before { display: none !important; }
 
 .day-section {
   margin-bottom: 56px;
@@ -407,99 +421,11 @@ h1 {
     <span class="section-meta">두 날 분리</span>
   </div>
 
-  <div class="day-map">
-    <div class="day-map-header">
-      <span class="dm-day">Day 01</span>
-      <span class="dm-desc">시청 반경 1km · 콤팩트</span>
-    </div>
-    <svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg" class="route-svg">
-      <defs>
-        <pattern id="seaWaves1" width="50" height="20" patternUnits="userSpaceOnUse">
-          <path d="M 0 10 Q 12 6, 25 10 T 50 10" fill="none" stroke="rgba(100,140,170,0.18)" stroke-width="0.6"/>
-        </pattern>
-        <marker id="arrEnd1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#e85a1a"/>
-        </marker>
-      </defs>
-      <path d="M 0 0 L 400 0 L 400 95 Q 360 100, 320 95 Q 270 87, 245 82 Q 215 88, 170 97 Q 100 102, 0 100 Z" fill="#e8f1f5"/>
-      <path d="M 0 0 L 400 0 L 400 95 Q 360 100, 320 95 Q 270 87, 245 82 Q 215 88, 170 97 Q 100 102, 0 100 Z" fill="url(#seaWaves1)"/>
-      <path d="M 0 100 Q 100 102, 170 97 Q 215 88, 245 82 Q 270 87, 320 95 Q 360 100, 400 95" stroke="rgba(100,140,170,0.45)" stroke-width="1.2" fill="none" stroke-linejoin="round"/>
-      <text x="200" y="40" class="area-label" text-anchor="middle">SEA · 제주 북쪽 해안</text>
-      <text x="200" y="270" class="area-label" text-anchor="middle">제주시 · Jeju City</text>
-      <path d="M 171 125 L 271 186 L 256 115 L 245 103 L 253 232 L 271 186 L 277 205" stroke="#e85a1a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrEnd1)"/>
-      <circle cx="171" cy="125" r="9" fill="#e85a1a" stroke="white" stroke-width="2.5"/>
-      <text x="171" y="148" text-anchor="middle" class="map-label">공항</text>
-      <circle cx="271" cy="186" r="14" fill="rgba(232,90,26,0.15)" stroke="none"/>
-      <circle cx="271" cy="186" r="9" fill="#e85a1a" stroke="white" stroke-width="2.5"/>
-      <text x="271" y="208" text-anchor="middle" class="map-label">라마다</text>
-      <circle cx="256" cy="115" r="7" fill="white" stroke="#e85a1a" stroke-width="2.5"/>
-      <text x="280" y="118" class="map-label">산지천</text>
-      <circle cx="245" cy="103" r="7" fill="white" stroke="#e85a1a" stroke-width="2.5"/>
-      <text x="245" y="89" text-anchor="middle" class="map-label">탑동</text>
-      <circle cx="253" cy="232" r="7" fill="white" stroke="#e85a1a" stroke-width="2.5"/>
-      <text x="253" y="252" text-anchor="middle" class="map-label">와인창고</text>
-      <circle cx="277" cy="205" r="9" fill="#e85a1a" stroke="white" stroke-width="2.5"/>
-      <text x="296" y="208" class="map-label">갓포제호</text>
-      <g transform="translate(370, 30)">
-        <text x="0" y="0" text-anchor="middle" class="compass-n">N</text>
-        <line x1="0" y1="3" x2="0" y2="20" stroke="#a09b94" stroke-width="0.7"/>
-        <polygon points="0,5 -2.5,12 0,9 2.5,12" fill="#a09b94"/>
-      </g>
-      <g transform="translate(30, 263)">
-        <line x1="0" y1="0" x2="50" y2="0" stroke="#6b6660" stroke-width="1"/>
-        <line x1="0" y1="-3" x2="0" y2="3" stroke="#6b6660" stroke-width="1"/>
-        <line x1="50" y1="-3" x2="50" y2="3" stroke="#6b6660" stroke-width="1"/>
-        <text x="25" y="-6" text-anchor="middle" class="scale-text">2km</text>
-      </g>
-    </svg>
+  <div class="map-tab-bar">
+    <div class="map-tab active" onclick="showDay(1)">Day 01 · 콤팩트</div>
+    <div class="map-tab" onclick="showDay(2)">Day 02 · 확장</div>
   </div>
-
-  <div class="day-map">
-    <div class="day-map-header">
-      <span class="dm-day">Day 02</span>
-      <span class="dm-desc">동서 12km · 확장</span>
-    </div>
-    <svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg" class="route-svg">
-      <defs>
-        <pattern id="seaWaves2" width="50" height="20" patternUnits="userSpaceOnUse">
-          <path d="M 0 10 Q 12 6, 25 10 T 50 10" fill="none" stroke="rgba(100,140,170,0.18)" stroke-width="0.6"/>
-        </pattern>
-        <marker id="arrEnd2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#e85a1a"/>
-        </marker>
-      </defs>
-      <path d="M 0 0 L 400 0 L 400 95 Q 360 100, 320 95 Q 270 87, 245 82 Q 215 88, 170 97 Q 100 102, 0 100 Z" fill="#e8f1f5"/>
-      <path d="M 0 0 L 400 0 L 400 95 Q 360 100, 320 95 Q 270 87, 245 82 Q 215 88, 170 97 Q 100 102, 0 100 Z" fill="url(#seaWaves2)"/>
-      <path d="M 0 100 Q 100 102, 170 97 Q 215 88, 245 82 Q 270 87, 320 95 Q 360 100, 400 95" stroke="rgba(100,140,170,0.45)" stroke-width="1.2" fill="none" stroke-linejoin="round"/>
-      <text x="200" y="40" class="area-label" text-anchor="middle">SEA · 제주 북쪽 해안</text>
-      <text x="200" y="270" class="area-label" text-anchor="middle">제주시 · Jeju City</text>
-      <path d="M 271 186 L 218 109 L 271 186 L 359 239 L 271 186 L 253 232 L 43 178 L 171 125" stroke="#e85a1a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrEnd2)"/>
-      <circle cx="271" cy="186" r="14" fill="rgba(232,90,26,0.15)" stroke="none"/>
-      <circle cx="271" cy="186" r="9" fill="#e85a1a" stroke="white" stroke-width="2.5"/>
-      <text x="271" y="208" text-anchor="middle" class="map-label">라마다</text>
-      <circle cx="218" cy="109" r="9" fill="#e85a1a" stroke="white" stroke-width="2.5"/>
-      <text x="218" y="95" text-anchor="middle" class="map-label">용두암</text>
-      <circle cx="359" cy="239" r="9" fill="#e85a1a" stroke="white" stroke-width="2.5"/>
-      <text x="359" y="259" text-anchor="middle" class="map-label">커피템플</text>
-      <circle cx="253" cy="232" r="7" fill="white" stroke="#e85a1a" stroke-width="2.5"/>
-      <text x="253" y="252" text-anchor="middle" class="map-label">와인창고</text>
-      <circle cx="43" cy="178" r="9" fill="#e85a1a" stroke="white" stroke-width="2.5"/>
-      <text x="60" y="180" class="map-label">내도바당</text>
-      <circle cx="171" cy="125" r="9" fill="#e85a1a" stroke="white" stroke-width="2.5"/>
-      <text x="171" y="148" text-anchor="middle" class="map-label">공항</text>
-      <g transform="translate(370, 30)">
-        <text x="0" y="0" text-anchor="middle" class="compass-n">N</text>
-        <line x1="0" y1="3" x2="0" y2="20" stroke="#a09b94" stroke-width="0.7"/>
-        <polygon points="0,5 -2.5,12 0,9 2.5,12" fill="#a09b94"/>
-      </g>
-      <g transform="translate(30, 263)">
-        <line x1="0" y1="0" x2="50" y2="0" stroke="#6b6660" stroke-width="1"/>
-        <line x1="0" y1="-3" x2="0" y2="3" stroke="#6b6660" stroke-width="1"/>
-        <line x1="50" y1="-3" x2="50" y2="3" stroke="#6b6660" stroke-width="1"/>
-        <text x="25" y="-6" text-anchor="middle" class="scale-text">2km</text>
-      </g>
-    </svg>
-  </div>
+  <div id="map" class="leaflet-map"></div>
 </section>
 
 <section class="day-section day-1">
@@ -716,6 +642,91 @@ h1 {
 </footer>
 
 <script>
+// --- Leaflet Map ---
+(function() {
+  var map = L.map('map', { zoomControl: false, attributionControl: false }).setView([33.505, 126.525], 14);
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(map);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    maxZoom: 18
+  }).addTo(map);
+
+  function makeIcon(color, size) {
+    return L.divIcon({
+      className: '',
+      html: '<div style="width:'+size+'px;height:'+size+'px;background:'+color+';border:2.5px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>',
+      iconSize: [size, size],
+      iconAnchor: [size/2, size/2]
+    });
+  }
+
+  var accent = '#e85a1a';
+  var day2color = '#2563eb';
+
+  var day1Places = [
+    { name: '제주공항', lat: 33.5104, lng: 126.4914, fixed: true },
+    { name: '라마다 시티홀', lat: 33.4997, lng: 126.5313, fixed: true },
+    { name: '산지천', lat: 33.5137, lng: 126.5270, fixed: false },
+    { name: '디앤디파트먼트/탑동', lat: 33.5170, lng: 126.5250, fixed: false },
+    { name: '와인창고', lat: 33.4920, lng: 126.5280, fixed: false },
+    { name: '갓포제호', lat: 33.4970, lng: 126.5400, fixed: true }
+  ];
+
+  var day2Places = [
+    { name: '라마다 (출발)', lat: 33.4997, lng: 126.5313, fixed: true },
+    { name: '용두암 러닝', lat: 33.5163, lng: 126.5119, fixed: true },
+    { name: '커피템플', lat: 33.4850, lng: 126.5650, fixed: true },
+    { name: '와인창고', lat: 33.4920, lng: 126.5280, fixed: false },
+    { name: '내도바당횟집', lat: 33.5060, lng: 126.4550, fixed: true },
+    { name: '제주공항', lat: 33.5104, lng: 126.4914, fixed: true }
+  ];
+
+  var day1Layer = L.layerGroup();
+  var day2Layer = L.layerGroup();
+
+  function addMarkers(places, layer, color) {
+    var coords = [];
+    places.forEach(function(p) {
+      var size = p.fixed ? 18 : 12;
+      var marker = L.marker([p.lat, p.lng], { icon: makeIcon(color, size) });
+      marker.bindTooltip(p.name, {
+        permanent: true, direction: 'top', offset: [0, -size/2 - 2],
+        className: 'map-tooltip'
+      });
+      marker.addTo(layer);
+      coords.push([p.lat, p.lng]);
+    });
+    L.polyline(coords, { color: color, weight: 3, opacity: 0.7, dashArray: '8 6' }).addTo(layer);
+  }
+
+  addMarkers(day1Places, day1Layer, accent);
+  addMarkers(day2Places, day2Layer, day2color);
+
+  day1Layer.addTo(map);
+  var currentDay = 1;
+
+  window.showDay = function(day) {
+    var tabs = document.querySelectorAll('.map-tab');
+    tabs.forEach(function(t, i) { t.classList.toggle('active', i === day - 1); });
+
+    if (day === 1) {
+      map.removeLayer(day2Layer);
+      day1Layer.addTo(map);
+      map.fitBounds(day1Places.map(function(p) { return [p.lat, p.lng]; }), { padding: [30, 30] });
+    } else {
+      map.removeLayer(day1Layer);
+      day2Layer.addTo(map);
+      map.fitBounds(day2Places.map(function(p) { return [p.lat, p.lng]; }), { padding: [30, 30] });
+    }
+    currentDay = day;
+  };
+
+  map.fitBounds(day1Places.map(function(p) { return [p.lat, p.lng]; }), { padding: [30, 30] });
+})();
+
+// --- Timeline ---
 (function() {
   var events = document.querySelectorAll('.event');
   var nowPill = document.getElementById('nowPill');
