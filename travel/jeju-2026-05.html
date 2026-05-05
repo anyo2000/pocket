@@ -227,6 +227,28 @@ h1 { font-family: var(--serif-kr); font-weight: 600; font-size: 38px; letter-spa
 .comment-btn:active { background: var(--accent-soft); }
 .comment-btn .count { font-family: var(--serif-en); font-size: 11px; color: var(--accent); }
 
+/* --- Meta bar (category + cost) --- */
+.meta-bar {
+  display: flex; gap: 6px; margin-top: 8px; align-items: center; flex-wrap: wrap;
+}
+.category-tag {
+  padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 500;
+  cursor: pointer; border: 1px solid var(--border); background: var(--surface);
+  color: var(--text-muted); transition: all 0.15s; font-family: var(--sans);
+}
+.category-tag.selected { background: var(--accent); color: white; border-color: var(--accent); }
+.category-tag:active { opacity: 0.7; }
+.cost-input {
+  margin-left: auto; width: 90px; padding: 3px 8px; border: 1px solid var(--border);
+  border-radius: 4px; font-size: 12px; font-family: var(--sans); text-align: right;
+  background: var(--surface); outline: none; color: var(--text);
+}
+.cost-input:focus { border-color: var(--accent-border); }
+.cost-display {
+  margin-left: auto; font-size: 12px; color: var(--text-dim);
+  font-family: var(--sans); font-variant-numeric: tabular-nums;
+}
+
 /* --- Comment panel --- */
 .comment-panel {
   display: none; margin-top: 10px; padding: 12px; background: var(--surface-2);
@@ -586,7 +608,8 @@ var eventsData = DEFAULT_EVENTS.slice();
 var editMode = false;
 var editingId = null;
 var editingDay = 1;
-var allScores = {}, allComments = {}, allDayComments = {};
+var allScores = {}, allComments = {}, allDayComments = {}, allMeta = {};
+var CATEGORIES = ['식사','관광','이동','숙소','쇼핑','카페','휴식'];
 
 // --- Render ---
 function renderAllEvents() {
@@ -596,6 +619,7 @@ function renderAllEvents() {
   applyScoresUI();
   applyCommentsUI();
   applyDayCommentsUI();
+  applyMetaUI();
   updateTimeline();
 }
 
@@ -655,6 +679,16 @@ function injectInteractBars() {
     var id = evt.dataset.id;
     var content = evt.querySelector('.content');
     if (content.querySelector('.interact-bar')) return;
+
+    var meta = document.createElement('div');
+    meta.className = 'meta-bar';
+    meta.setAttribute('data-meta', id);
+    var catHtml = '';
+    CATEGORIES.forEach(function(c) {
+      catHtml += '<span class="category-tag" data-cat="' + id + '-' + c + '" onclick="pickCategory(\'' + id + '\',\'' + c + '\')">' + c + '</span>';
+    });
+    meta.innerHTML = catHtml + '<input class="cost-input" data-cost="' + id + '" type="number" placeholder="비용" inputmode="numeric" onchange="saveCost(\'' + id + '\',this.value)">';
+    content.appendChild(meta);
 
     var bar = document.createElement('div');
     bar.className = 'interact-bar';
@@ -790,6 +824,33 @@ function confirmDeleteEvent(id) {
   }
 }
 
+// --- Category & Cost ---
+function pickCategory(eventId, cat) {
+  var data = allMeta[eventId] || {};
+  var update = { category: (data.category === cat) ? '' : cat };
+  tripRef.collection('meta').doc(eventId).set(update, { merge: true });
+}
+function saveCost(eventId, val) {
+  var cost = parseInt(val) || 0;
+  tripRef.collection('meta').doc(eventId).set({ cost: cost }, { merge: true });
+}
+function applyMetaUI() {
+  Object.keys(allMeta).forEach(function(id) {
+    var data = allMeta[id];
+    CATEGORIES.forEach(function(c) {
+      var el = document.querySelector('[data-cat="' + id + '-' + c + '"]');
+      if (el) el.classList.toggle('selected', data.category === c);
+    });
+    var costEl = document.querySelector('[data-cost="' + id + '"]');
+    if (costEl && data.cost) costEl.value = data.cost;
+  });
+}
+tripRef.collection('meta').onSnapshot(function(snap) {
+  allMeta = {};
+  snap.forEach(function(doc) { allMeta[doc.id] = doc.data(); });
+  applyMetaUI();
+});
+
 // --- Star Rating ---
 function rateStar(eventId, user, rating) {
   if (!currentUser || currentUser !== user) return;
@@ -924,12 +985,21 @@ function renderNotes() {
       var aScore = scoreData.A || 0;
       var comments = allComments[evt.id] || [];
 
-      if (hScore > 0 || aScore > 0 || comments.length > 0) {
+      var metaData = allMeta[evt.id] || {};
+      var hasMeta = metaData.category || metaData.cost;
+
+      if (hScore > 0 || aScore > 0 || comments.length > 0 || hasMeta) {
         hasData = true;
         var starsH = hScore > 0 ? 'H ' + '★'.repeat(hScore) + '☆'.repeat(5 - hScore) : '';
         var starsA = aScore > 0 ? 'A ' + '★'.repeat(aScore) + '☆'.repeat(5 - aScore) : '';
         var scoreTxt = [starsH, starsA].filter(Boolean).join('  ');
-        dayHtml += '<div class="note-card"><div class="nc-header"><span class="nc-place">' + esc(evt.activity) + '</span></div>';
+        var metaInfo = [];
+        if (metaData.category) metaInfo.push(metaData.category);
+        if (metaData.cost) metaInfo.push(Number(metaData.cost).toLocaleString() + '원');
+        var metaTxt = metaInfo.join(' · ');
+        dayHtml += '<div class="note-card"><div class="nc-header"><span class="nc-place">' + esc(evt.activity) + '</span>';
+        if (metaTxt) dayHtml += '<span style="font-size:11px;color:var(--text-muted)">' + metaTxt + '</span>';
+        dayHtml += '</div>';
         if (scoreTxt) dayHtml += '<div style="font-size:12px;color:var(--accent);margin-bottom:4px;">' + scoreTxt + '</div>';
         if (comments.length) {
           dayHtml += '<div class="nc-comments">';
@@ -966,12 +1036,15 @@ function exportNotes() {
       var scoreData = allScores[evt.id] || {};
       var hS = scoreData.H || 0, aS = scoreData.A || 0;
       var comments = allComments[evt.id] || [];
-      if (hS > 0 || aS > 0 || comments.length > 0) {
+      var metaData = allMeta[evt.id] || {};
+      if (hS > 0 || aS > 0 || comments.length > 0 || metaData.category || metaData.cost) {
         var parts = [];
-        if (hS > 0) parts.push('H:' + hS);
-        if (aS > 0) parts.push('A:' + aS);
-        var scoreTxt = parts.length ? ' [' + parts.join(' ') + '/5]' : '';
-        lines.push('- ' + evt.activity + scoreTxt);
+        if (metaData.category) parts.push(metaData.category);
+        if (metaData.cost) parts.push(Number(metaData.cost).toLocaleString() + '원');
+        if (hS > 0) parts.push('H:' + hS + '/5');
+        if (aS > 0) parts.push('A:' + aS + '/5');
+        var metaTxt = parts.length ? ' [' + parts.join(' · ') + ']' : '';
+        lines.push('- ' + evt.activity + metaTxt);
         comments.forEach(function(c) { lines.push('  - ' + c.user + ': ' + c.text); });
       }
     });
