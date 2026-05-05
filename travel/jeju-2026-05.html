@@ -793,8 +793,10 @@ function confirmDeleteEvent(id) {
 // --- Star Rating ---
 function rateStar(eventId, user, rating) {
   if (!currentUser || currentUser !== user) return;
+  var data = allScores[eventId] || {};
+  var cur = data[user] || 0;
   var update = {};
-  update[user] = rating;
+  update[user] = (cur === rating) ? 0 : rating;
   tripRef.collection('scores').doc(eventId).set(update, { merge: true });
 }
 
