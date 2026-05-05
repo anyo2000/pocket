@@ -91,6 +91,16 @@ body {
   justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
+/* --- Edit toggle --- */
+.edit-toggle {
+  position: fixed; bottom: 20px; left: 20px; z-index: 100;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--surface); color: var(--text-muted); border: 1px solid var(--border);
+  font-size: 16px; display: flex; align-items: center;
+  justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.edit-toggle.active { background: var(--accent); color: white; border-color: var(--accent); }
+
 .header {
   text-align: center; padding: 28px 0 36px; border-bottom: 1px solid var(--border);
   margin-bottom: 36px; animation: fadeIn 0.8s ease;
@@ -171,7 +181,7 @@ h1 { font-family: var(--serif-kr); font-weight: 600; font-size: 38px; letter-spa
   content: 'NOW'; position: absolute; top: 8px; right: 12px; font-family: var(--serif-en);
   font-style: italic; font-size: 10px; letter-spacing: 0.3em; color: var(--accent);
 }
-.event.past { opacity: 0.4; }
+.event.past { opacity: 0.9; }
 .event.past .time { color: var(--text-muted); }
 
 .time { font-family: var(--serif-en); font-size: 24px; font-weight: 400; letter-spacing: 0.01em; color: var(--text); line-height: 1; padding-top: 4px; font-variant-numeric: tabular-nums; }
@@ -253,6 +263,72 @@ h1 { font-family: var(--serif-kr); font-weight: 600; font-size: 38px; letter-spa
   letter-spacing: 0.15em; margin-bottom: 10px;
 }
 
+/* --- Edit mode buttons --- */
+.edit-btns {
+  display: flex; gap: 6px; margin-top: 10px;
+}
+.edit-event-btn, .delete-event-btn {
+  padding: 5px 12px; border-radius: 4px; font-size: 11px; cursor: pointer;
+  font-family: var(--sans); font-weight: 500; transition: all 0.15s;
+}
+.edit-event-btn {
+  border: 1px solid var(--border); background: var(--surface); color: var(--text-dim);
+}
+.edit-event-btn:active { background: var(--accent-soft); color: var(--accent); }
+.delete-event-btn {
+  border: 1px solid #e5c5c5; background: var(--surface); color: #c44;
+}
+.delete-event-btn:active { background: #fef2f2; }
+.add-event-btn {
+  display: block; width: 100%; padding: 14px; margin-top: 8px;
+  border: 1px dashed var(--accent-border); border-radius: 6px;
+  background: var(--accent-soft); color: var(--accent);
+  font-size: 13px; font-weight: 500; cursor: pointer; text-align: center;
+  font-family: var(--sans);
+}
+.add-event-btn:active { background: rgba(232, 90, 26, 0.12); }
+
+/* --- Edit modal --- */
+.edit-modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+  z-index: 300; display: none; align-items: flex-end; justify-content: center;
+}
+.edit-modal.open { display: flex; }
+.edit-modal-body {
+  background: white; width: 100%; max-width: 560px;
+  border-radius: 16px 16px 0 0; padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0));
+}
+.edit-modal-title {
+  font-family: var(--serif-kr); font-weight: 500; font-size: 17px;
+  margin-bottom: 20px; color: var(--text);
+}
+.edit-field { margin-bottom: 14px; }
+.edit-field label {
+  display: block; font-size: 11px; color: var(--text-muted);
+  letter-spacing: 0.05em; margin-bottom: 6px; font-weight: 500;
+}
+.edit-field input {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px;
+  font-size: 15px; font-family: var(--sans); background: var(--surface); outline: none;
+}
+.edit-field input:focus { border-color: var(--accent-border); }
+.edit-modal-actions {
+  display: flex; gap: 8px; margin-top: 20px;
+}
+.edit-modal-actions button {
+  flex: 1; padding: 12px; border-radius: 6px; font-size: 14px;
+  font-weight: 500; cursor: pointer; font-family: var(--sans);
+}
+.btn-save {
+  border: none; background: var(--accent); color: white;
+}
+.btn-delete {
+  border: 1px solid #e5c5c5; background: white; color: #c44;
+}
+.btn-cancel {
+  border: 1px solid var(--border); background: white; color: var(--text-dim);
+}
+
 /* --- Notes view --- */
 .notes-section { margin-bottom: 40px; }
 .notes-section h3 { font-family: var(--serif-kr); font-size: 15px; font-weight: 500; margin-bottom: 12px; color: var(--text); }
@@ -307,6 +383,9 @@ h1 { font-family: var(--serif-kr); font-weight: 600; font-size: 38px; letter-spa
 <!-- User indicator -->
 <div class="user-indicator" id="userBadge" style="display:none" onclick="switchUser()"></div>
 
+<!-- Edit toggle -->
+<div class="edit-toggle" id="editToggle" onclick="toggleEditMode()">✎</div>
+
 <div class="now-pill" id="nowPill">Now</div>
 
 <header class="header">
@@ -347,100 +426,7 @@ h1 { font-family: var(--serif-kr); font-weight: 600; font-size: 38px; letter-spa
     <span class="section-title">탑동 디자인 코스</span>
     <span class="section-meta">5/5 화<br>어린이날</span>
   </div>
-  <div class="timeline">
-
-    <div class="event fixed" data-start="2026-05-05T08:20" data-id="d1-airport">
-      <div class="time">08:20</div>
-      <div class="content">
-        <div class="activity">제주 도착<span class="tag">arrive</span></div>
-        <div class="note">짐 찾고 출구 8:40~50 / 공항 베이커리에서 빵·음료 테이크아웃</div>
-        <div class="actions">
-          <a class="action" href="https://map.kakao.com/?q=제주국제공항" target="_blank">📍 카카오맵</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="event fixed" data-start="2026-05-05T09:00" data-id="d1-ramada">
-      <div class="time">09:00</div>
-      <div class="content">
-        <div class="activity">라마다 캐리어 보관</div>
-        <div class="note">프런트 러기지 스토리지 (체크인 전)</div>
-        <div class="actions">
-          <a class="action" href="https://map.kakao.com/?q=라마다 바이 윈덤 제주 시티홀" target="_blank">📍 카카오맵</a>
-          <a class="action" href="tel:+82647598831">📞 064-759-8831</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="event" data-start="2026-05-05T09:30" data-id="d1-sanjicheon">
-      <div class="time">09:30</div>
-      <div class="content">
-        <div class="activity">산지천 산책</div>
-        <div class="note">라마다에서 도보 7분 / 다리·골목 사진</div>
-        <div class="actions">
-          <a class="action" href="https://map.kakao.com/?q=산지천" target="_blank">📍 카카오맵</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="event" data-start="2026-05-05T10:00" data-id="d1-dnd">
-      <div class="time">10:00</div>
-      <div class="content">
-        <div class="activity">디앤디파트먼트 제주<span class="tag dim">Elephant Hip</span></div>
-        <div class="note">10:30 오픈, 1층 매장 + 카페에서 브런치 보충</div>
-        <div class="note warn">수요일 휴무 — 5/5만 갈 수 있음</div>
-        <div class="actions">
-          <a class="action" href="https://map.kakao.com/?q=디앤디파트먼트 제주" target="_blank">📍 카카오맵</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="event" data-start="2026-05-05T12:00" data-id="d1-arario">
-      <div class="time">12:00</div>
-      <div class="content">
-        <div class="activity">아라리오뮤지엄 탑동시네마</div>
-        <div class="note">디앤디 도보 1분 / 입장 1만원 / 6층 건물 전체, 75분~1.5h 권장</div>
-        <div class="actions">
-          <a class="action" href="https://map.kakao.com/?q=아라리오뮤지엄 탑동시네마" target="_blank">📍 카카오맵</a>
-          <a class="action" href="tel:+82647208201">📞 064-720-8201</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="event" data-start="2026-05-05T13:00" data-id="d1-tapdong">
-      <div class="time">13:00</div>
-      <div class="content">
-        <div class="activity">탑동 · 원도심 가볍게<span class="tag dim">와인창고 후보</span></div>
-        <div class="note">와인 시음 + 와인창고 카페테리아 / 칠성통·라이킷 도보권</div>
-        <div class="actions">
-          <a class="action" href="https://map.kakao.com/?q=와인창고 제주 본점" target="_blank">📍 와인창고</a>
-          <a class="action" href="https://map.kakao.com/?q=라이킷 제주" target="_blank">📍 라이킷</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="event" data-start="2026-05-05T15:00" data-id="d1-checkin">
-      <div class="time">15:00</div>
-      <div class="content">
-        <div class="activity">체크인 · 휴식</div>
-        <div class="note">라마다 시티홀 (시청 한복판)</div>
-      </div>
-    </div>
-
-    <div class="event fixed" data-start="2026-05-05T18:00" data-id="d1-kappo">
-      <div class="time">18:00</div>
-      <div class="content">
-        <div class="activity">갓포제호<span class="tag">omakase</span></div>
-        <div class="note">제주 식재료 가이세키 / 1.5~2시간 / 도보 20분 또는 택시 5분</div>
-        <div class="actions">
-          <a class="action" href="https://map.kakao.com/?q=갓포제호" target="_blank">📍 카카오맵</a>
-          <a class="action" href="tel:+821072233676">📞 010-7223-3676</a>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
+  <div class="timeline" id="timeline-day1"></div>
   <div class="day-comment-section" data-day="day1">
     <div class="day-comment-header">Day 01 — 오늘 한마디</div>
     <div class="comment-input-row">
@@ -457,107 +443,7 @@ h1 { font-family: var(--serif-kr); font-weight: 600; font-size: 38px; letter-spa
     <span class="section-title">러닝 + 강의 + 미식 마무리</span>
     <span class="section-meta">5/6 수<br>평일</span>
   </div>
-  <div class="timeline">
-
-    <div class="event fixed" data-start="2026-05-06T06:30" data-id="d2-running">
-      <div class="time">06:30</div>
-      <div class="content">
-        <div class="activity">탑동 ~ 용두암 러닝<span class="tag dim">7km</span></div>
-        <div class="note">라마다 → 산지천 → 탑동 해안로 → 용두암 → 복귀 / 50~60분</div>
-        <div class="actions">
-          <a class="action" href="https://map.kakao.com/?q=탑동 해안로" target="_blank">📍 탑동</a>
-          <a class="action" href="https://map.kakao.com/?q=용두암" target="_blank">📍 용두암</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="event fixed" data-start="2026-05-06T07:30" data-id="d2-breakfast">
-      <div class="time">07:30</div>
-      <div class="content">
-        <div class="activity">아침식사</div>
-        <div class="note">호텔 조식 또는 시내 카페 (빵귿 10:30 오픈이라 못 감)</div>
-      </div>
-    </div>
-
-    <div class="event fixed" data-start="2026-05-06T08:30" data-id="d2-shower">
-      <div class="time">08:30</div>
-      <div class="content">
-        <div class="activity">샤워</div>
-        <div class="note">체크아웃 후 캐리어 프런트 보관 (저녁에 픽업)</div>
-      </div>
-    </div>
-
-    <div class="event fixed" data-start="2026-05-06T09:30" data-id="d2-lecture">
-      <div class="time">09:30</div>
-      <div class="content">
-        <div class="activity">한국가스안전공사 제주본부<span class="tag">work</span></div>
-        <div class="note">9:30~12:00 교육 진행</div>
-        <div class="actions">
-          <a class="action" href="https://map.kakao.com/?q=한국가스안전공사 제주본부" target="_blank">📍 카카오맵</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="event fixed" data-start="2026-05-06T12:00" data-id="d2-lunch">
-      <div class="time">12:00</div>
-      <div class="content">
-        <div class="activity">점심 · 일통이반</div>
-        <div class="note">교육 후 점심</div>
-        <div class="actions">
-          <a class="action" href="https://map.kakao.com/?q=일통이반 제주" target="_blank">📍 카카오맵</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="event fixed" data-start="2026-05-06T14:00" data-id="d2-coffee">
-      <div class="time">14:00</div>
-      <div class="content">
-        <div class="activity">커피템플<span class="tag">합류</span></div>
-        <div class="note">싱글오리진 핸드드립 / 영평길 / 여기서 합류</div>
-        <div class="actions">
-          <a class="action" href="https://map.kakao.com/?q=커피템플 제주" target="_blank">📍 카카오맵</a>
-          <a class="action" href="tel:+820708806805">📞 070-8806-8051</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="event fixed" data-start="2026-05-06T16:00" data-id="d2-wine">
-      <div class="time">16:00</div>
-      <div class="content">
-        <div class="activity">와인창고<span class="tag dim">후보</span></div>
-        <div class="note">라마다 캐리어 픽업 후 / 시음 + 카페테리아 / 캐리어 차에 두고 입장</div>
-        <div class="actions">
-          <a class="action" href="https://map.kakao.com/?q=와인창고 제주 본점" target="_blank">📍 카카오맵</a>
-          <a class="action" href="tel:+821091993782">📞 010-9199-3782</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="event fixed" data-start="2026-05-06T18:00" data-id="d2-fish">
-      <div class="time">18:00</div>
-      <div class="content">
-        <div class="activity">내도바당횟집<span class="tag">고등어회</span></div>
-        <div class="note">자연산 즉살 고등어회 1인분 둘이 나누기 / 일요일 휴무 (수요일 OK)</div>
-        <div class="actions">
-          <a class="action" href="https://map.kakao.com/?q=내도바당횟집" target="_blank">📍 카카오맵</a>
-          <a class="action" href="tel:+82647438339">📞 064-743-8339</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="event fixed" data-start="2026-05-06T20:40" data-id="d2-depart">
-      <div class="time">20:40</div>
-      <div class="content">
-        <div class="activity">제주공항<span class="tag">depart</span></div>
-        <div class="note">내도바당 → 공항 차로 10분 / 1시간 버퍼</div>
-        <div class="actions">
-          <a class="action" href="https://map.kakao.com/?q=제주국제공항" target="_blank">📍 카카오맵</a>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
+  <div class="timeline" id="timeline-day2"></div>
   <div class="day-comment-section" data-day="day2">
     <div class="day-comment-header">Day 02 — 오늘 한마디</div>
     <div class="comment-input-row">
@@ -580,6 +466,26 @@ h1 { font-family: var(--serif-kr); font-weight: 600; font-size: 38px; letter-spa
   <button class="export-btn" onclick="exportNotes()">클립보드에 복사 (노션 붙여넣기용)</button>
 </div>
 
+<!-- Edit Modal -->
+<div class="edit-modal" id="editModal" onclick="if(event.target===this)closeEditModal()">
+  <div class="edit-modal-body">
+    <div class="edit-modal-title" id="editModalTitle">일정 추가</div>
+    <div class="edit-field">
+      <label>시간</label>
+      <input type="time" id="editTime">
+    </div>
+    <div class="edit-field">
+      <label>활동명</label>
+      <input type="text" id="editActivity" placeholder="장소 또는 활동">
+    </div>
+    <div class="edit-modal-actions">
+      <button class="btn-save" onclick="saveEvent()">저장</button>
+      <button class="btn-delete" id="editDeleteBtn" onclick="confirmDeleteEvent()" style="display:none">삭제</button>
+      <button class="btn-cancel" onclick="closeEditModal()">취소</button>
+    </div>
+  </div>
+</div>
+
 <footer class="footer">
   <span class="clock" id="clock">--:--</span>
   Made for two · Jeju 2026
@@ -597,6 +503,14 @@ firebase.initializeApp({
 });
 var db = firebase.firestore();
 var tripRef = db.collection('trips').doc('jeju-2026-05');
+
+// --- Escape HTML ---
+function esc(s) {
+  if (!s) return '';
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
 
 // --- User ---
 var currentUser = localStorage.getItem('jeju-user');
@@ -628,53 +542,217 @@ function switchView(view) {
   if (view === 'notes') renderNotes();
 }
 
-// --- Inject interact bars into events ---
-document.querySelectorAll('.event[data-id]').forEach(function(evt) {
-  var id = evt.dataset.id;
-  var content = evt.querySelector('.content');
+// --- Default Events ---
+var DEFAULT_EVENTS = [
+  { id:'d1-airport', day:1, time:'08:20', start:'2026-05-05T08:20', activity:'제주 도착', tag:'arrive', tagDim:false, fixed:true, notes:['짐 찾고 출구 8:40~50 / 공항 베이커리에서 빵·음료 테이크아웃'], warnNotes:[], actions:[{icon:'📍',label:'카카오맵',url:'https://map.kakao.com/?q=제주국제공항'}] },
+  { id:'d1-ramada', day:1, time:'09:00', start:'2026-05-05T09:00', activity:'라마다 캐리어 보관', tag:'', tagDim:false, fixed:true, notes:['프런트 러기지 스토리지 (체크인 전)'], warnNotes:[], actions:[{icon:'📍',label:'카카오맵',url:'https://map.kakao.com/?q=라마다 바이 윈덤 제주 시티홀'},{icon:'📞',label:'064-759-8831',url:'tel:+82647598831'}] },
+  { id:'d1-sanjicheon', day:1, time:'09:30', start:'2026-05-05T09:30', activity:'산지천 산책', tag:'', tagDim:false, fixed:false, notes:['라마다에서 도보 7분 / 다리·골목 사진'], warnNotes:[], actions:[{icon:'📍',label:'카카오맵',url:'https://map.kakao.com/?q=산지천'}] },
+  { id:'d1-dnd', day:1, time:'10:00', start:'2026-05-05T10:00', activity:'디앤디파트먼트 제주', tag:'Elephant Hip', tagDim:true, fixed:false, notes:['10:30 오픈, 1층 매장 + 카페에서 브런치 보충'], warnNotes:['수요일 휴무 — 5/5만 갈 수 있음'], actions:[{icon:'📍',label:'카카오맵',url:'https://map.kakao.com/?q=디앤디파트먼트 제주'}] },
+  { id:'d1-arario', day:1, time:'12:00', start:'2026-05-05T12:00', activity:'아라리오뮤지엄 탑동시네마', tag:'', tagDim:false, fixed:false, notes:['디앤디 도보 1분 / 입장 1만원 / 6층 건물 전체, 75분~1.5h 권장'], warnNotes:[], actions:[{icon:'📍',label:'카카오맵',url:'https://map.kakao.com/?q=아라리오뮤지엄 탑동시네마'},{icon:'📞',label:'064-720-8201',url:'tel:+82647208201'}] },
+  { id:'d1-tapdong', day:1, time:'13:00', start:'2026-05-05T13:00', activity:'탑동 · 원도심 가볍게', tag:'와인창고 후보', tagDim:true, fixed:false, notes:['와인 시음 + 와인창고 카페테리아 / 칠성통·라이킷 도보권'], warnNotes:[], actions:[{icon:'📍',label:'와인창고',url:'https://map.kakao.com/?q=와인창고 제주 본점'},{icon:'📍',label:'라이킷',url:'https://map.kakao.com/?q=라이킷 제주'}] },
+  { id:'d1-checkin', day:1, time:'15:00', start:'2026-05-05T15:00', activity:'체크인 · 휴식', tag:'', tagDim:false, fixed:false, notes:['라마다 시티홀 (시청 한복판)'], warnNotes:[], actions:[] },
+  { id:'d1-kappo', day:1, time:'18:00', start:'2026-05-05T18:00', activity:'갓포제호', tag:'omakase', tagDim:false, fixed:true, notes:['제주 식재료 가이세키 / 1.5~2시간 / 도보 20분 또는 택시 5분'], warnNotes:[], actions:[{icon:'📍',label:'카카오맵',url:'https://map.kakao.com/?q=갓포제호'},{icon:'📞',label:'010-7223-3676',url:'tel:+821072233676'}] },
+  { id:'d2-running', day:2, time:'06:30', start:'2026-05-06T06:30', activity:'탑동 ~ 용두암 러닝', tag:'7km', tagDim:true, fixed:true, notes:['라마다 → 산지천 → 탑동 해안로 → 용두암 → 복귀 / 50~60분'], warnNotes:[], actions:[{icon:'📍',label:'탑동',url:'https://map.kakao.com/?q=탑동 해안로'},{icon:'📍',label:'용두암',url:'https://map.kakao.com/?q=용두암'}] },
+  { id:'d2-breakfast', day:2, time:'07:30', start:'2026-05-06T07:30', activity:'아침식사', tag:'', tagDim:false, fixed:true, notes:['호텔 조식 또는 시내 카페 (빵귿 10:30 오픈이라 못 감)'], warnNotes:[], actions:[] },
+  { id:'d2-shower', day:2, time:'08:30', start:'2026-05-06T08:30', activity:'샤워', tag:'', tagDim:false, fixed:true, notes:['체크아웃 후 캐리어 프런트 보관 (저녁에 픽업)'], warnNotes:[], actions:[] },
+  { id:'d2-lecture', day:2, time:'09:30', start:'2026-05-06T09:30', activity:'한국가스안전공사 제주본부', tag:'work', tagDim:false, fixed:true, notes:['9:30~12:00 교육 진행'], warnNotes:[], actions:[{icon:'📍',label:'카카오맵',url:'https://map.kakao.com/?q=한국가스안전공사 제주본부'}] },
+  { id:'d2-lunch', day:2, time:'12:00', start:'2026-05-06T12:00', activity:'점심 · 일통이반', tag:'', tagDim:false, fixed:true, notes:['교육 후 점심'], warnNotes:[], actions:[{icon:'📍',label:'카카오맵',url:'https://map.kakao.com/?q=일통이반 제주'}] },
+  { id:'d2-coffee', day:2, time:'14:00', start:'2026-05-06T14:00', activity:'커피템플', tag:'합류', tagDim:false, fixed:true, notes:['싱글오리진 핸드드립 / 영평길 / 여기서 합류'], warnNotes:[], actions:[{icon:'📍',label:'카카오맵',url:'https://map.kakao.com/?q=커피템플 제주'},{icon:'📞',label:'070-8806-8051',url:'tel:+827088068051'}] },
+  { id:'d2-wine', day:2, time:'16:00', start:'2026-05-06T16:00', activity:'와인창고', tag:'후보', tagDim:true, fixed:true, notes:['라마다 캐리어 픽업 후 / 시음 + 카페테리아 / 캐리어 차에 두고 입장'], warnNotes:[], actions:[{icon:'📍',label:'카카오맵',url:'https://map.kakao.com/?q=와인창고 제주 본점'},{icon:'📞',label:'010-9199-3782',url:'tel:+821091993782'}] },
+  { id:'d2-fish', day:2, time:'18:00', start:'2026-05-06T18:00', activity:'내도바당횟집', tag:'고등어회', tagDim:false, fixed:true, notes:['자연산 즉살 고등어회 1인분 둘이 나누기 / 일요일 휴무 (수요일 OK)'], warnNotes:[], actions:[{icon:'📍',label:'카카오맵',url:'https://map.kakao.com/?q=내도바당횟집'},{icon:'📞',label:'064-743-8339',url:'tel:+82647438339'}] },
+  { id:'d2-depart', day:2, time:'20:40', start:'2026-05-06T20:40', activity:'제주공항', tag:'depart', tagDim:false, fixed:true, notes:['내도바당 → 공항 차로 10분 / 1시간 버퍼'], warnNotes:[], actions:[{icon:'📍',label:'카카오맵',url:'https://map.kakao.com/?q=제주국제공항'}] }
+];
 
-  var bar = document.createElement('div');
-  bar.className = 'interact-bar';
-  bar.innerHTML =
-    '<button class="score-btn" onclick="vote(\'' + id + '\',-1)">-</button>' +
-    '<span class="score-display" data-score-display="' + id + '">0</span>' +
-    '<button class="score-btn" onclick="vote(\'' + id + '\',1)">+</button>' +
-    '<button class="comment-btn" onclick="toggleComment(\'' + id + '\',this)">' +
-    '\uD83D\uDCAC <span class="count" data-comment-count="' + id + '"></span></button>';
-  content.appendChild(bar);
+// --- State ---
+var eventsData = DEFAULT_EVENTS.slice();
+var editMode = false;
+var editingId = null;
+var editingDay = 1;
+var allScores = {}, allComments = {}, allDayComments = {};
 
-  var panel = document.createElement('div');
-  panel.className = 'comment-panel';
-  panel.setAttribute('data-panel', id);
-  panel.innerHTML =
-    '<div class="comment-input-row">' +
-    '<input class="comment-input" placeholder="메모, 비용, 감상 아무거나" maxlength="200" onkeydown="if(event.key===\'Enter\')sendComment(\'' + id + '\',this)">' +
-    '<button class="comment-send" onclick="sendComment(\'' + id + '\',this.previousElementSibling)">보내기</button>' +
-    '</div>' +
-    '<div class="comment-list" data-comments="' + id + '"></div>';
-  content.appendChild(panel);
+// --- Render ---
+function renderAllEvents() {
+  renderDayTimeline(1);
+  renderDayTimeline(2);
+  injectInteractBars();
+  applyScoresUI();
+  applyCommentsUI();
+  applyDayCommentsUI();
+  updateTimeline();
+}
+
+function renderDayTimeline(day) {
+  var timeline = document.getElementById('timeline-day' + day);
+  var dayEvents = eventsData.filter(function(e) { return e.day === day; });
+  dayEvents.sort(function(a, b) { return a.start < b.start ? -1 : a.start > b.start ? 1 : 0; });
+
+  var html = '';
+  dayEvents.forEach(function(evt) { html += buildEventHTML(evt); });
+  if (editMode) {
+    html += '<button class="add-event-btn" onclick="openAddModal(' + day + ')">+ 일정 추가</button>';
+  }
+  timeline.innerHTML = html;
+}
+
+function buildEventHTML(evt) {
+  var cls = 'event' + (evt.fixed ? ' fixed' : '');
+  var h = '<div class="' + cls + '" data-start="' + esc(evt.start) + '" data-id="' + esc(evt.id) + '">';
+  h += '<div class="time">' + esc(evt.time) + '</div>';
+  h += '<div class="content">';
+  h += '<div class="activity">' + esc(evt.activity);
+  if (evt.tag) h += '<span class="tag' + (evt.tagDim ? ' dim' : '') + '">' + esc(evt.tag) + '</span>';
+  h += '</div>';
+  if (evt.notes) evt.notes.forEach(function(n) { if (n) h += '<div class="note">' + esc(n) + '</div>'; });
+  if (evt.warnNotes) evt.warnNotes.forEach(function(n) { if (n) h += '<div class="note warn">' + esc(n) + '</div>'; });
+  if (evt.actions && evt.actions.length) {
+    h += '<div class="actions">';
+    evt.actions.forEach(function(a) {
+      var isPhone = a.url && a.url.indexOf('tel:') === 0;
+      h += '<a class="action" href="' + esc(a.url) + '"' + (isPhone ? '' : ' target="_blank"') + '>' + esc(a.icon || '📍') + ' ' + esc(a.label) + '</a>';
+    });
+    h += '</div>';
+  }
+  if (editMode) {
+    h += '<div class="edit-btns">';
+    h += '<button class="edit-event-btn" onclick="openEditModal(\'' + evt.id + '\')">수정</button>';
+    h += '<button class="delete-event-btn" onclick="confirmDeleteEvent(\'' + evt.id + '\')">삭제</button>';
+    h += '</div>';
+  }
+  h += '</div></div>';
+  return h;
+}
+
+// --- Inject interact bars ---
+function injectInteractBars() {
+  document.querySelectorAll('.event[data-id]').forEach(function(evt) {
+    var id = evt.dataset.id;
+    var content = evt.querySelector('.content');
+    if (content.querySelector('.interact-bar')) return;
+
+    var bar = document.createElement('div');
+    bar.className = 'interact-bar';
+    bar.innerHTML =
+      '<button class="score-btn" onclick="vote(\'' + id + '\',-1)">-</button>' +
+      '<span class="score-display" data-score-display="' + id + '">0</span>' +
+      '<button class="score-btn" onclick="vote(\'' + id + '\',1)">+</button>' +
+      '<button class="comment-btn" onclick="toggleComment(\'' + id + '\')">' +
+      '\uD83D\uDCAC <span class="count" data-comment-count="' + id + '"></span></button>';
+    content.appendChild(bar);
+
+    var panel = document.createElement('div');
+    panel.className = 'comment-panel';
+    panel.setAttribute('data-panel', id);
+    panel.innerHTML =
+      '<div class="comment-input-row">' +
+      '<input class="comment-input" placeholder="메모, 비용, 감상 아무거나" maxlength="200" onkeydown="if(event.key===\'Enter\')sendComment(\'' + id + '\',this)">' +
+      '<button class="comment-send" onclick="sendComment(\'' + id + '\',this.previousElementSibling)">보내기</button>' +
+      '</div>' +
+      '<div class="comment-list" data-comments="' + id + '"></div>';
+    content.appendChild(panel);
+  });
+}
+
+// --- Initial render ---
+renderAllEvents();
+
+// --- Firebase Events Sync ---
+var seeding = false;
+tripRef.collection('events').onSnapshot(function(snap) {
+  if (snap.empty && !seeding) {
+    seeding = true;
+    var batch = db.batch();
+    DEFAULT_EVENTS.forEach(function(evt) {
+      batch.set(tripRef.collection('events').doc(evt.id), evt);
+    });
+    batch.commit();
+    return;
+  }
+  if (!snap.empty) {
+    eventsData = [];
+    snap.forEach(function(doc) { eventsData.push(doc.data()); });
+    renderAllEvents();
+  }
 });
+
+// --- Edit Mode ---
+function toggleEditMode() {
+  editMode = !editMode;
+  document.getElementById('editToggle').classList.toggle('active', editMode);
+  renderAllEvents();
+}
+
+// --- Edit Modal ---
+function openAddModal(day) {
+  editingId = null;
+  editingDay = day;
+  document.getElementById('editModalTitle').textContent = '일정 추가';
+  document.getElementById('editTime').value = '';
+  document.getElementById('editActivity').value = '';
+  document.getElementById('editDeleteBtn').style.display = 'none';
+  document.getElementById('editModal').classList.add('open');
+}
+
+function openEditModal(id) {
+  var evt = eventsData.find(function(e) { return e.id === id; });
+  if (!evt) return;
+  editingId = id;
+  editingDay = evt.day;
+  document.getElementById('editModalTitle').textContent = '일정 수정';
+  document.getElementById('editTime').value = evt.time;
+  document.getElementById('editActivity').value = evt.activity;
+  document.getElementById('editDeleteBtn').style.display = 'block';
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+}
+
+function saveEvent() {
+  var time = document.getElementById('editTime').value;
+  var activity = document.getElementById('editActivity').value.trim();
+  if (!time || !activity) { alert('시간과 활동명을 입력하세요'); return; }
+
+  var dateStr = editingDay === 1 ? '2026-05-05' : '2026-05-06';
+  var start = dateStr + 'T' + time;
+
+  if (editingId) {
+    tripRef.collection('events').doc(editingId).update({
+      time: time, start: start, activity: activity
+    });
+  } else {
+    var id = 'd' + editingDay + '-' + Date.now();
+    tripRef.collection('events').doc(id).set({
+      id: id, day: editingDay, time: time, start: start, activity: activity,
+      fixed: false, tag: '', tagDim: false, notes: [], warnNotes: [], actions: []
+    });
+  }
+  closeEditModal();
+}
+
+function confirmDeleteEvent(id) {
+  if (id) editingId = id;
+  if (!editingId) return;
+  var evt = eventsData.find(function(e) { return e.id === editingId; });
+  var name = evt ? evt.activity : '';
+  if (confirm('"' + name + '" 삭제할까요?')) {
+    tripRef.collection('events').doc(editingId).delete();
+    closeEditModal();
+  }
+}
 
 // --- Score ---
 function vote(id, delta) {
   if (!currentUser) return;
-  var ref = tripRef.collection('scores').doc(id);
-  ref.get().then(function(doc) {
-    var data = doc.exists ? doc.data() : {};
-    var key = currentUser;
-    var cur = data[key] || 0;
-    var next = cur + delta;
-    var update = {};
-    update[key] = next;
-    return ref.set(update, { merge: true });
-  });
+  var update = {};
+  update[currentUser] = firebase.firestore.FieldValue.increment(delta);
+  tripRef.collection('scores').doc(id).set(update, { merge: true });
 }
 
-// Listen scores
-tripRef.collection('scores').onSnapshot(function(snap) {
-  snap.forEach(function(doc) {
-    var id = doc.id;
-    var data = doc.data();
+// --- Score UI ---
+function applyScoresUI() {
+  Object.keys(allScores).forEach(function(id) {
+    var data = allScores[id];
     var total = (data.H || 0) + (data.A || 0);
     var el = document.querySelector('[data-score-display="' + id + '"]');
     if (el) {
@@ -682,24 +760,27 @@ tripRef.collection('scores').onSnapshot(function(snap) {
       el.className = 'score-display' + (total > 0 ? ' positive' : total < 0 ? ' negative' : '');
     }
   });
+}
+
+tripRef.collection('scores').onSnapshot(function(snap) {
+  allScores = {};
+  snap.forEach(function(doc) { allScores[doc.id] = doc.data(); });
+  applyScoresUI();
 });
 
 // --- Comments ---
 function toggleComment(id) {
   var panel = document.querySelector('[data-panel="' + id + '"]');
+  if (!panel) return;
   panel.classList.toggle('open');
-  if (panel.classList.contains('open')) {
-    panel.querySelector('.comment-input').focus();
-  }
+  if (panel.classList.contains('open')) panel.querySelector('.comment-input').focus();
 }
 
 function sendComment(id, input) {
   var text = input.value.trim();
   if (!text || !currentUser) return;
   tripRef.collection('comments').add({
-    eventId: id,
-    user: currentUser,
-    text: text,
+    eventId: id, user: currentUser, text: text,
     ts: firebase.firestore.FieldValue.serverTimestamp()
   });
   input.value = '';
@@ -710,66 +791,41 @@ function sendDayComment(day, btn) {
   var text = input.value.trim();
   if (!text || !currentUser) return;
   tripRef.collection('dayComments').add({
-    day: day,
-    user: currentUser,
-    text: text,
+    day: day, user: currentUser, text: text,
     ts: firebase.firestore.FieldValue.serverTimestamp()
   });
   input.value = '';
 }
 
-// Listen comments
-tripRef.collection('comments').orderBy('ts', 'asc').onSnapshot(function(snap) {
-  var byEvent = {};
-  snap.forEach(function(doc) {
-    var d = doc.data();
-    if (!byEvent[d.eventId]) byEvent[d.eventId] = [];
-    byEvent[d.eventId].push(d);
-  });
-
+function applyCommentsUI() {
   document.querySelectorAll('[data-comments]').forEach(function(el) {
     var id = el.dataset.comments;
-    var items = byEvent[id] || [];
+    var items = allComments[id] || [];
     el.innerHTML = items.map(function(c) {
       var time = c.ts ? new Date(c.ts.seconds * 1000) : null;
       var timeStr = time ? (time.getMonth()+1) + '/' + time.getDate() + ' ' + String(time.getHours()).padStart(2,'0') + ':' + String(time.getMinutes()).padStart(2,'0') : '';
-      return '<div class="comment-item"><span class="who">' + c.user + '</span>' + c.text + '<span class="when">' + timeStr + '</span></div>';
+      return '<div class="comment-item"><span class="who">' + esc(c.user) + '</span>' + esc(c.text) + '<span class="when">' + timeStr + '</span></div>';
     }).join('');
   });
-
   document.querySelectorAll('[data-comment-count]').forEach(function(el) {
     var id = el.dataset.commentCount;
-    var count = (byEvent[id] || []).length;
+    var count = (allComments[id] || []).length;
     el.textContent = count > 0 ? count : '';
   });
-});
+}
 
-// Listen day comments
-tripRef.collection('dayComments').orderBy('ts', 'asc').onSnapshot(function(snap) {
-  var byDay = {};
-  snap.forEach(function(doc) {
-    var d = doc.data();
-    if (!byDay[d.day]) byDay[d.day] = [];
-    byDay[d.day].push(d);
-  });
-
+function applyDayCommentsUI() {
   document.querySelectorAll('[data-day-comments]').forEach(function(el) {
     var day = el.dataset.dayComments;
-    var items = byDay[day] || [];
+    var items = allDayComments[day] || [];
     el.innerHTML = items.map(function(c) {
       var time = c.ts ? new Date(c.ts.seconds * 1000) : null;
       var timeStr = time ? String(time.getHours()).padStart(2,'0') + ':' + String(time.getMinutes()).padStart(2,'0') : '';
-      return '<div class="comment-item"><span class="who">' + c.user + '</span>' + c.text + '<span class="when">' + timeStr + '</span></div>';
+      return '<div class="comment-item"><span class="who">' + esc(c.user) + '</span>' + esc(c.text) + '<span class="when">' + timeStr + '</span></div>';
     }).join('');
   });
-});
+}
 
-// --- Notes view ---
-var allScores = {}, allComments = {}, allDayComments = {};
-tripRef.collection('scores').onSnapshot(function(snap) {
-  allScores = {};
-  snap.forEach(function(doc) { allScores[doc.id] = doc.data(); });
-});
 tripRef.collection('comments').orderBy('ts', 'asc').onSnapshot(function(snap) {
   allComments = {};
   snap.forEach(function(doc) {
@@ -777,7 +833,9 @@ tripRef.collection('comments').orderBy('ts', 'asc').onSnapshot(function(snap) {
     if (!allComments[d.eventId]) allComments[d.eventId] = [];
     allComments[d.eventId].push(d);
   });
+  applyCommentsUI();
 });
+
 tripRef.collection('dayComments').orderBy('ts', 'asc').onSnapshot(function(snap) {
   allDayComments = {};
   snap.forEach(function(doc) {
@@ -785,39 +843,35 @@ tripRef.collection('dayComments').orderBy('ts', 'asc').onSnapshot(function(snap)
     if (!allDayComments[d.day]) allDayComments[d.day] = [];
     allDayComments[d.day].push(d);
   });
+  applyDayCommentsUI();
 });
 
+// --- Notes view ---
 function renderNotes() {
   var html = '';
-  var events = document.querySelectorAll('.event[data-id]');
   var hasData = false;
 
-  ['day-1', 'day-2'].forEach(function(dayCls, dayIdx) {
-    var dayKey = 'day' + (dayIdx + 1);
-    var dayLabel = 'Day 0' + (dayIdx + 1);
-    var dayEvents = [];
-
-    events.forEach(function(evt) {
-      if (evt.closest('.day-section.' + dayCls)) dayEvents.push(evt);
-    });
+  [1, 2].forEach(function(day) {
+    var dayKey = 'day' + day;
+    var dayLabel = 'Day 0' + day;
+    var dayEvents = eventsData.filter(function(e) { return e.day === day; });
+    dayEvents.sort(function(a, b) { return a.start < b.start ? -1 : 1; });
 
     var dayHtml = '';
     dayEvents.forEach(function(evt) {
-      var id = evt.dataset.id;
-      var name = evt.querySelector('.activity').textContent.trim();
-      var scoreData = allScores[id] || {};
+      var scoreData = allScores[evt.id] || {};
       var total = (scoreData.H || 0) + (scoreData.A || 0);
-      var comments = allComments[id] || [];
+      var comments = allComments[evt.id] || [];
 
       if (total !== 0 || comments.length > 0) {
         hasData = true;
         var scoreClass = total > 0 ? ' positive' : total < 0 ? ' negative' : '';
-        dayHtml += '<div class="note-card"><div class="nc-header"><span class="nc-place">' + name + '</span>';
+        dayHtml += '<div class="note-card"><div class="nc-header"><span class="nc-place">' + esc(evt.activity) + '</span>';
         if (total !== 0) dayHtml += '<span class="nc-score' + scoreClass + '">' + (total > 0 ? '+' : '') + total + '</span>';
         dayHtml += '</div>';
         if (comments.length) {
           dayHtml += '<div class="nc-comments">';
-          comments.forEach(function(c) { dayHtml += '<span><b>' + c.user + '</b> ' + c.text + '</span>'; });
+          comments.forEach(function(c) { dayHtml += '<span><b>' + esc(c.user) + '</b> ' + esc(c.text) + '</span>'; });
           dayHtml += '</div>';
         }
         dayHtml += '</div>';
@@ -828,13 +882,11 @@ function renderNotes() {
     if (dayC.length) {
       hasData = true;
       dayHtml += '<div class="note-card" style="border-left-color:#2563eb"><div class="nc-header"><span class="nc-place">' + dayLabel + ' 총평</span></div><div class="nc-comments">';
-      dayC.forEach(function(c) { dayHtml += '<span><b>' + c.user + '</b> ' + c.text + '</span>'; });
+      dayC.forEach(function(c) { dayHtml += '<span><b>' + esc(c.user) + '</b> ' + esc(c.text) + '</span>'; });
       dayHtml += '</div></div>';
     }
 
-    if (dayHtml) {
-      html += '<div class="notes-section"><h3>' + dayLabel + '</h3>' + dayHtml + '</div>';
-    }
+    if (dayHtml) html += '<div class="notes-section"><h3>' + dayLabel + '</h3>' + dayHtml + '</div>';
   });
 
   document.getElementById('notesContent').innerHTML = hasData ? html : '<div class="notes-empty">아직 기록이 없어요</div>';
@@ -842,21 +894,19 @@ function renderNotes() {
 
 function exportNotes() {
   var lines = [];
-  var events = document.querySelectorAll('.event[data-id]');
+  [1, 2].forEach(function(day) {
+    var dayKey = 'day' + day;
+    lines.push('## Day 0' + day);
+    var dayEvents = eventsData.filter(function(e) { return e.day === day; });
+    dayEvents.sort(function(a, b) { return a.start < b.start ? -1 : 1; });
 
-  ['day-1', 'day-2'].forEach(function(dayCls, dayIdx) {
-    var dayKey = 'day' + (dayIdx + 1);
-    lines.push('## Day 0' + (dayIdx + 1));
-    events.forEach(function(evt) {
-      if (!evt.closest('.day-section.' + dayCls)) return;
-      var id = evt.dataset.id;
-      var name = evt.querySelector('.activity').textContent.trim();
-      var scoreData = allScores[id] || {};
+    dayEvents.forEach(function(evt) {
+      var scoreData = allScores[evt.id] || {};
       var total = (scoreData.H || 0) + (scoreData.A || 0);
-      var comments = allComments[id] || [];
+      var comments = allComments[evt.id] || [];
       if (total !== 0 || comments.length > 0) {
         var scoreTxt = total !== 0 ? ' [' + (total > 0 ? '+' : '') + total + ']' : '';
-        lines.push('- ' + name + scoreTxt);
+        lines.push('- ' + evt.activity + scoreTxt);
         comments.forEach(function(c) { lines.push('  - ' + c.user + ': ' + c.text); });
       }
     });
@@ -867,10 +917,7 @@ function exportNotes() {
     }
     lines.push('');
   });
-
-  navigator.clipboard.writeText(lines.join('\n')).then(function() {
-    alert('복사 완료! 노션에 붙여넣기 하세요.');
-  });
+  navigator.clipboard.writeText(lines.join('\n')).then(function() { alert('복사 완료! 노션에 붙여넣기 하세요.'); });
 }
 
 // --- Leaflet Map ---
@@ -940,32 +987,36 @@ function exportNotes() {
 })();
 
 // --- Timeline ---
-(function() {
-  var events = document.querySelectorAll('.event');
+function updateTimeline() {
+  var events = document.querySelectorAll('.event[data-start]');
   var nowPill = document.getElementById('nowPill');
-  var clock = document.getElementById('clock');
+  var now = new Date();
+  var activeFound = false;
+  var sorted = Array.from(events).map(function(el) { return { el: el, start: new Date(el.dataset.start) }; }).sort(function(a, b) { return a.start - b.start; });
+  sorted.forEach(function(evt, idx) {
+    evt.el.classList.remove('now', 'past');
+    var next = sorted[idx + 1];
+    var end = next ? next.start : new Date(evt.start.getTime() + 90 * 60 * 1000);
+    if (now >= end) { evt.el.classList.add('past'); }
+    else if (now >= evt.start) { evt.el.classList.add('now'); activeFound = true; }
+  });
+  nowPill.classList.toggle('active', activeFound);
+}
 
-  function update() {
+(function() {
+  var clock = document.getElementById('clock');
+  function tick() {
     var now = new Date();
-    var activeFound = false;
-    var sorted = Array.from(events).map(function(el) { return { el: el, start: new Date(el.dataset.start) }; }).sort(function(a, b) { return a.start - b.start; });
-    sorted.forEach(function(evt, idx) {
-      evt.el.classList.remove('now', 'past');
-      var next = sorted[idx + 1];
-      var end = next ? next.start : new Date(evt.start.getTime() + 90 * 60 * 1000);
-      if (now >= end) { evt.el.classList.add('past'); }
-      else if (now >= evt.start) { evt.el.classList.add('now'); activeFound = true; }
-    });
-    nowPill.classList.toggle('active', activeFound);
     var hh = String(now.getHours()).padStart(2, '0');
     var mm = String(now.getMinutes()).padStart(2, '0');
     var dd = String(now.getDate()).padStart(2, '0');
     var mo = String(now.getMonth() + 1).padStart(2, '0');
     clock.textContent = mo + '/' + dd + '  ' + hh + ':' + mm;
+    updateTimeline();
   }
-  update();
-  setInterval(update, 30000);
-  setTimeout(function() { var e = document.querySelector('.event.now'); if (e) e.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 600);
+  tick();
+  setInterval(tick, 30000);
+  setTimeout(function() { var e = document.querySelector('.event.now'); if (e) e.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 800);
 })();
 </script>
 
