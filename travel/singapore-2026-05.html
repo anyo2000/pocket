@@ -427,8 +427,9 @@ body {
   display: block; font-size: 10px; color: var(--text-muted);
   letter-spacing: 0.06em; margin-bottom: 4px;
 }
+.cost-cell { min-width: 0; }
 .cost-cell input {
-  width: 100%; padding: 7px 10px; border: 1px solid var(--border);
+  width: 100%; min-width: 0; padding: 7px 10px; border: 1px solid var(--border);
   border-radius: 6px; font-size: 13px; font-family: var(--sans);
   background: var(--surface); outline: none; color: var(--text);
   font-variant-numeric: tabular-nums;
@@ -465,16 +466,21 @@ body {
 
 /* --- Comment panel --- */
 .cmt-panel { margin-top: 8px; }
-.cmt-input-row { display: flex; gap: 6px; margin-bottom: 8px; }
+.cmt-input-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
 .cmt-input {
-  flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
+  flex: 1; min-width: 0;
+  padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
   font-size: 13px; font-family: var(--sans); background: var(--surface); outline: none;
 }
 .cmt-input:focus { border-color: var(--accent); }
 .cmt-send {
-  padding: 8px 14px; border: none; border-radius: 6px; background: var(--accent);
-  color: white; font-size: 12px; font-weight: 500; cursor: pointer;
+  width: 36px; height: 36px; padding: 0; flex-shrink: 0;
+  border: none; border-radius: 8px; background: var(--accent);
+  color: white; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
 }
+.cmt-send i { width: 16px; height: 16px; stroke-width: 2.2; }
+.cmt-send:active { background: var(--lavender-deep); transform: scale(0.95); }
 .cmt-list { display: flex; flex-direction: column; gap: 6px; }
 .cmt-item {
   display: flex; align-items: flex-start; gap: 8px;
@@ -1149,7 +1155,7 @@ function renderDayContainers() {
     html += '<div class="day-cmt-header">Day ' + d + ' — 오늘 한마디</div>';
     html += '<div class="cmt-input-row">';
     html += '<input class="cmt-input day-cmt-input" data-day="day' + d + '" placeholder="오늘 하루 어땠어?" maxlength="200" onkeydown="if(event.key===\'Enter\')sendDayComment(\'day' + d + '\',this)">';
-    html += '<button class="cmt-send" onclick="sendDayComment(\'day' + d + '\',this.previousElementSibling)">보내기</button>';
+    html += '<button class="cmt-send" aria-label="보내기" onclick="sendDayComment(\'day' + d + '\',this.previousElementSibling)"><i data-lucide="send-horizontal"></i></button>';
     html += '</div>';
     html += '<div class="cmt-list" data-day-comments="day' + d + '"></div>';
     html += '</div>';
@@ -1297,7 +1303,7 @@ function buildEventHTML(evt) {
   h += '<div class="ed-label">Comments · 코멘트</div>';
   h += '<div class="cmt-input-row">';
   h += '<input class="cmt-input" placeholder="메모, 감상 아무거나" maxlength="200" onkeydown="if(event.key===\'Enter\')sendComment(\'' + evt.id + '\',this)">';
-  h += '<button class="cmt-send" onclick="sendComment(\'' + evt.id + '\',this.previousElementSibling)">보내기</button>';
+  h += '<button class="cmt-send" aria-label="보내기" onclick="sendComment(\'' + evt.id + '\',this.previousElementSibling)"><i data-lucide="send-horizontal"></i></button>';
   h += '</div>';
   h += '<div class="cmt-list" data-comments="' + evt.id + '"></div>';
   h += '</div>';
