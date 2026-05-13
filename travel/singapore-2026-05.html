@@ -866,6 +866,15 @@ body {
         <option value="">선택 안함</option>
       </select>
     </div>
+    <div class="edit-field">
+      <label>구글맵 링크 (선택)</label>
+      <input type="text" id="editMapUrl" placeholder="https://maps.app.goo.gl/... 또는 구글맵 공유 링크" oninput="previewMapUrl()">
+      <div style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.5;">
+        폰: 구글맵 앱 → 장소 검색 → <b>공유</b> → 링크 복사 → 여기 붙여넣기<br>
+        PC: 구글맵 → 장소 → 공유 → URL 복사 → 여기 붙여넣기
+      </div>
+      <div id="mapUrlStatus" style="font-size:11px;margin-top:6px;display:none;"></div>
+    </div>
     <div class="edit-modal-actions">
       <button class="btn-save" onclick="saveEvent()">저장</button>
       <button class="btn-delete" id="editDeleteBtn" onclick="confirmDeleteEvent()" style="display:none">삭제</button>
@@ -986,6 +995,24 @@ function fmtSGD(n) {
 }
 function fmtKRW(n) {
   return Number(n).toLocaleString('ko-KR');
+}
+function extractCoords(url) {
+  if (!url) return null;
+  var patterns = [
+    /@(-?\d+\.\d+),(-?\d+\.\d+)/,
+    /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,
+    /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/,
+    /[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/,
+    /[?&]destination=(-?\d+\.\d+),(-?\d+\.\d+)/
+  ];
+  for (var i = 0; i < patterns.length; i++) {
+    var m = url.match(patterns[i]);
+    if (m) {
+      var lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+      if (!isNaN(lat) && !isNaN(lng)) return { lat: lat, lng: lng };
+    }
+  }
+  return null;
 }
 
 // ============================================================
@@ -1175,6 +1202,12 @@ function buildEventHTML(evt) {
       url: 'https://www.google.com/maps?q=' + evt.lat + ',' + evt.lng,
       icon: 'map-pin'
     });
+  } else if (evt.mapUrl) {
+    actions.push({
+      label: '구글맵',
+      url: evt.mapUrl,
+      icon: 'map-pin'
+    });
   }
   if (actions.length) {
     h += '<div class="evt-actions">';
@@ -1261,12 +1294,12 @@ function buildEventHTML(evt) {
   h += '<div class="cmt-list" data-comments="' + evt.id + '"></div>';
   h += '</div>';
 
+  h += '<div class="edit-btns">';
+  h += '<button class="edit-event-btn" onclick="openEditModal(\'' + evt.id + '\')">수정</button>';
   if (editMode) {
-    h += '<div class="edit-btns">';
-    h += '<button class="edit-event-btn" onclick="openEditModal(\'' + evt.id + '\')">수정</button>';
     h += '<button class="delete-event-btn" onclick="confirmDeleteEvent(\'' + evt.id + '\')">삭제</button>';
-    h += '</div>';
   }
+  h += '</div>';
 
   h += '</div>'; // /detail
   h += '</div>'; // /evt-body
@@ -1358,6 +1391,26 @@ function buildCategorySelect(current) {
   sel.innerHTML = html;
 }
 
+function resetMapUrlStatus() {
+  var el = document.getElementById('mapUrlStatus');
+  if (el) { el.style.display = 'none'; el.textContent = ''; }
+}
+function previewMapUrl() {
+  var url = document.getElementById('editMapUrl').value.trim();
+  var el = document.getElementById('mapUrlStatus');
+  if (!el) return;
+  if (!url) { el.style.display = 'none'; return; }
+  var coords = extractCoords(url);
+  if (coords) {
+    el.style.display = 'block';
+    el.style.color = 'var(--mint-deep)';
+    el.textContent = '✓ 좌표 추출됨: ' + coords.lat.toFixed(4) + ', ' + coords.lng.toFixed(4) + ' — 지도 핀 자동 등록';
+  } else {
+    el.style.display = 'block';
+    el.style.color = 'var(--accent-deep)';
+    el.textContent = '⚠ 짧은 링크인 듯 — 클릭 시 구글맵 열림 (자동 핀 불가, PC URL 권장)';
+  }
+}
 function openAddModal(day) {
   editingId = null;
   editingDay = day || 1;
@@ -1367,6 +1420,8 @@ function openAddModal(day) {
   buildTimeGrid();
   document.getElementById('editActivity').value = '';
   buildCategorySelect('');
+  document.getElementById('editMapUrl').value = '';
+  resetMapUrlStatus();
   document.getElementById('editDeleteBtn').style.display = 'none';
   document.getElementById('editModal').classList.add('open');
 }
@@ -1383,7 +1438,13 @@ function openEditModal(id) {
   if (match) match.classList.add('selected');
   document.getElementById('editActivity').value = evt.activity;
   buildCategorySelect(evt.category || '');
-  document.getElementById('editDeleteBtn').style.display = 'block';
+  var mapInput = document.getElementById('editMapUrl');
+  if (evt.mapUrl) { mapInput.value = evt.mapUrl; }
+  else if (evt.lat && evt.lng) { mapInput.value = 'https://www.google.com/maps?q=' + evt.lat + ',' + evt.lng; }
+  else { mapInput.value = ''; }
+  resetMapUrlStatus();
+  previewMapUrl();
+  document.getElementById('editDeleteBtn').style.display = editMode ? 'block' : 'none';
   document.getElementById('editModal').classList.add('open');
   if (match) setTimeout(function() { match.scrollIntoView({ block: 'center', behavior: 'instant' }); }, 50);
 }
@@ -1394,19 +1455,39 @@ function saveEvent() {
   var time = selectedTime;
   var activity = document.getElementById('editActivity').value.trim();
   var category = document.getElementById('editCategory').value;
+  var mapUrl = document.getElementById('editMapUrl').value.trim();
   if (!time || !activity) { alert('시간과 활동명을 입력하세요'); return; }
   var dateStr = DAY_DATES[editingDay - 1];
   var start = dateStr + 'T' + time;
+  var coords = extractCoords(mapUrl);
+
   if (editingId) {
-    tripRef.collection('events').doc(editingId).update({
+    var update = {
       day: editingDay, time: time, start: start, activity: activity, category: category
-    });
+    };
+    if (coords) {
+      update.lat = coords.lat;
+      update.lng = coords.lng;
+      update.mapUrl = mapUrl;
+    } else if (mapUrl) {
+      update.mapUrl = mapUrl;
+      update.lat = firebase.firestore.FieldValue.delete();
+      update.lng = firebase.firestore.FieldValue.delete();
+    } else {
+      update.mapUrl = firebase.firestore.FieldValue.delete();
+      update.lat = firebase.firestore.FieldValue.delete();
+      update.lng = firebase.firestore.FieldValue.delete();
+    }
+    tripRef.collection('events').doc(editingId).update(update);
   } else {
     var id = 'd' + editingDay + '-' + Date.now();
-    tripRef.collection('events').doc(id).set({
+    var payload = {
       id: id, day: editingDay, time: time, start: start, activity: activity, category: category,
       fixed: false, tag: '', tagDim: false, notes: [], warnNotes: [], actions: []
-    });
+    };
+    if (coords) { payload.lat = coords.lat; payload.lng = coords.lng; payload.mapUrl = mapUrl; }
+    else if (mapUrl) { payload.mapUrl = mapUrl; }
+    tripRef.collection('events').doc(id).set(payload);
   }
   closeEditModal();
 }
