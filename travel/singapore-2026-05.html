@@ -1031,17 +1031,32 @@ var DEFAULT_EVENTS = [
   { id:'d1-arrive',  day:1, time:'23:55', start:'2026-05-15T23:55', activity:'창이공항 도착',    category:'비행',  fixed:true,  notes:['싱가포르/창이 터미널 4'], actions:[], lat:1.3644, lng:103.9915 },
   { id:'d1-checkin', day:1, time:'01:00', start:'2026-05-16T01:00', activity:'호텔 미 로코르 체크인', category:'호텔', fixed:true,  notes:['공항 → 호텔 이동 후 늦은 새벽 체크인'], actions:[], mapUrl: HOTEL_URL },
 
-  // Day 2 (5/16 토) — 첫 풀데이
-  { id:'d2-breakfast', day:2, time:'09:00', start:'2026-05-16T09:00', activity:'아침',               category:'식사', fixed:false, notes:[''], actions:[] },
-  { id:'d2-marina',    day:2, time:'11:00', start:'2026-05-16T11:00', activity:'마리나베이 일대',    category:'관광', fixed:false, notes:['멀라이언 · 가든즈 바이 더 베이'], actions:[], lat:1.2839, lng:103.8607 },
-  { id:'d2-lunch',     day:2, time:'13:00', start:'2026-05-16T13:00', activity:'점심',               category:'식사', fixed:false, notes:[''], actions:[] },
-  { id:'d2-evening',   day:2, time:'19:30', start:'2026-05-16T19:30', activity:'야경 · 스카이라인',  category:'관광', fixed:false, notes:['Spectra 쇼 20:00 / 21:00'], actions:[], lat:1.2834, lng:103.8607 },
+  // Day 2 (5/16 토) — 민족거리 + 차이나타운 + 클라키
+  { id:'d2-breakfast',  day:2, time:'08:30', start:'2026-05-16T08:30', activity:'카야토스트 아침',       category:'식사',    fixed:false, notes:['Ya Kun Kaya Toast 등 Rochor/Bugis 근처'], actions:[], lat:1.3005, lng:103.8555 },
+  { id:'d2-india',      day:2, time:'09:30', start:'2026-05-16T09:30', activity:'리틀인디아',            category:'관광',    fixed:false, notes:['테카센터 · 색색 건물 거리 (호텔에서 도보 5분)'], actions:[], lat:1.3066, lng:103.8518 },
+  { id:'d2-kampong',    day:2, time:'11:00', start:'2026-05-16T11:00', activity:'캄퐁글램',              category:'관광',    fixed:false, notes:['술탄 모스크 · 하지레인 · 아랍스트릿 (도보 15분)'], actions:[], lat:1.3025, lng:103.8597 },
+  { id:'d2-lunch',      day:2, time:'12:30', start:'2026-05-16T12:30', activity:'점심 (현지 음식)',      category:'식사',    fixed:false, notes:['캄퐁글램 맛집 or Zam Zam 무르타박'], actions:[], lat:1.3020, lng:103.8590 },
+  { id:'d2-bugis',      day:2, time:'13:30', start:'2026-05-16T13:30', activity:'부기스 스트릿',         category:'쇼핑',    fixed:false, notes:['캄퐁글램 바로 옆 · 로컬 쇼핑'], actions:[], lat:1.2993, lng:103.8553 },
+  { id:'d2-move-ct',    day:2, time:'15:00', start:'2026-05-16T15:00', activity:'🚇 차이나타운 이동',   category:'이동',    fixed:false, notes:['MRT Bugis → Chinatown (10분)'], actions:[] },
+  { id:'d2-mariamman',  day:2, time:'15:20', start:'2026-05-16T15:20', activity:'스리 마리암만 사원',    category:'관광',    fixed:false, notes:['사우스브릿지로드 · 화려한 힌두 사원'], actions:[], lat:1.2827, lng:103.8451 },
+  { id:'d2-pagoda',     day:2, time:'15:50', start:'2026-05-16T15:50', activity:'파고다 스트릿',         category:'관광',    fixed:false, notes:['기념품 · 거리 구경'], actions:[], lat:1.2833, lng:103.8443 },
+  { id:'d2-buddha',     day:2, time:'16:30', start:'2026-05-16T16:30', activity:'불아사',                category:'관광',    fixed:false, notes:['Buddha Tooth Relic Temple · 파고다 스트릿 끝자락'], actions:[], lat:1.2815, lng:103.8443 },
+  { id:'d2-maxwell',    day:2, time:'17:30', start:'2026-05-16T17:30', activity:'맥스웰 푸드센터',       category:'식사',    fixed:false, notes:['불아사 바로 옆 · 천천향 치킨라이스 필수'], actions:[], lat:1.2805, lng:103.8448 },
+  { id:'d2-move-ck',    day:2, time:'19:00', start:'2026-05-16T19:00', activity:'🚶 클라키 이동',       category:'이동',    fixed:false, notes:['맥스웰에서 도보 10~15분'], actions:[] },
+  { id:'d2-clarke',     day:2, time:'19:30', start:'2026-05-16T19:30', activity:'클라키 구경',           category:'관광',    fixed:false, notes:['리버사이드 야경 · 바/레스토랑 거리'], actions:[], lat:1.2884, lng:103.8464 },
+  { id:'d2-cruise',     day:2, time:'20:30', start:'2026-05-16T20:30', activity:'리버크루즈',            category:'관광',    fixed:false, notes:['클라키 선착장 출발 · ~40분 코스'], actions:[], lat:1.2884, lng:103.8464 },
 
-  // Day 3 (5/17 일) — 둘째 풀데이
-  { id:'d3-breakfast', day:3, time:'08:00', start:'2026-05-17T08:00', activity:'아침',   category:'식사', fixed:false, notes:[''], actions:[] },
-  { id:'d3-sentosa',   day:3, time:'10:00', start:'2026-05-17T10:00', activity:'센토사', category:'관광', fixed:false, notes:['Universal Studios / S.E.A. 아쿠아리움 등'], actions:[], lat:1.2494, lng:103.8303 },
-  { id:'d3-lunch',     day:3, time:'13:00', start:'2026-05-17T13:00', activity:'점심',   category:'식사', fixed:false, notes:[''], actions:[] },
-  { id:'d3-dinner',    day:3, time:'19:00', start:'2026-05-17T19:00', activity:'저녁',   category:'식사', fixed:false, notes:[''], actions:[] },
+  // Day 3 (5/17 일) — 바쿠테 + 칠리크랩 + 마리나베이
+  { id:'d3-bakuteh',    day:3, time:'09:00', start:'2026-05-17T09:00', activity:'송파 바쿠테',           category:'식사',    fixed:false, notes:['New Bridge Rd 본점 · 국밥 느낌 아침'], actions:[], lat:1.2855, lng:103.8449 },
+  { id:'d3-move-mb',    day:3, time:'10:30', start:'2026-05-17T10:30', activity:'🚇 마리나베이 이동',   category:'이동',    fixed:false, notes:['MRT ~10분'], actions:[] },
+  { id:'d3-merlion',    day:3, time:'11:00', start:'2026-05-17T11:00', activity:'머라이언 파크',         category:'관광',    fixed:false, notes:['머라이언 + 마리나베이 배경 사진'], actions:[], lat:1.2868, lng:103.8545 },
+  { id:'d3-jumbo',      day:3, time:'12:00', start:'2026-05-17T12:00', activity:'점보 시푸드',           category:'식사',    fixed:false, notes:['Riverside Point점 · 칠리크랩 필수 · 예약 추천'], actions:[], lat:1.2884, lng:103.8464 },
+  { id:'d3-move-mbs',   day:3, time:'14:00', start:'2026-05-17T14:00', activity:'🚶 마리나베이 이동',   category:'이동',    fixed:false, notes:['클라키에서 도보 or MRT 한 정거장'], actions:[] },
+  { id:'d3-mbs',        day:3, time:'14:30', start:'2026-05-17T14:30', activity:'마리나베이샌즈',        category:'관광',    fixed:false, notes:['쇼핑몰 구경 · 스카이파크 전망대 (유료)'], actions:[], lat:1.2834, lng:103.8607 },
+  { id:'d3-gardens',    day:3, time:'16:30', start:'2026-05-17T16:30', activity:'가든즈 바이 더 베이',   category:'관광',    fixed:false, notes:['MBS에서 도보 연결 · 슈퍼트리 + 클라우드포레스트'], actions:[], lat:1.2816, lng:103.8636 },
+  { id:'d3-dinner',     day:3, time:'18:30', start:'2026-05-17T18:30', activity:'저녁 여유시간',         category:'카페·휴식', fixed:false, notes:['MBS 푸드코트 or 주변 가볍게'], actions:[], lat:1.2834, lng:103.8607 },
+  { id:'d3-spectra',    day:3, time:'19:45', start:'2026-05-17T19:45', activity:'분수쇼 (Spectra)',      category:'관광',    fixed:false, notes:['MBS 앞 무료 · 20:00 / 21:00 회차'], actions:[], lat:1.2834, lng:103.8607 },
+  { id:'d3-rhapsody',   day:3, time:'20:45', start:'2026-05-17T20:45', activity:'가든 랩소디 (레이저쇼)', category:'관광',   fixed:false, notes:['슈퍼트리 그로브 무료 · 도보 10분'], actions:[], lat:1.2816, lng:103.8636 },
 
   // Day 4 (5/18 월) — 새벽 출국
   { id:'d4-checkout', day:4, time:'05:00', start:'2026-05-18T05:00', activity:'호텔 체크아웃',         category:'호텔', fixed:true, notes:['공항 이동 · 출국 2시간 전 도착'], actions:[], mapUrl: HOTEL_URL },
