@@ -258,20 +258,78 @@ body {
   font-size: 11px; cursor: pointer;
 }
 
-.summary-row {
-  display: flex; gap: 12px; margin-top: 16px;
+/* --- NOW card (홈) --- */
+.now-card {
+  margin-bottom: 14px;
+  padding: 20px 18px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--lavender-deep) 100%);
+  color: white;
+  border-radius: var(--radius-lg);
+  position: relative;
+  box-shadow: 0 6px 20px rgba(139, 127, 214, 0.25);
 }
-.summary-card {
-  flex: 1; padding: 14px; border-radius: var(--radius);
-  background: var(--surface-2); text-align: center;
+.now-card .nc-tag {
+  font-family: var(--serif-en); font-style: italic; font-size: 10px;
+  letter-spacing: 0.32em; text-transform: uppercase;
+  opacity: 0.9; margin-bottom: 10px;
 }
-.summary-card .sc-num {
-  font-family: var(--serif-en); font-weight: 500; font-size: 28px;
-  color: var(--accent-deep); line-height: 1;
+.now-card .nc-row { display: flex; align-items: baseline; gap: 12px; }
+.now-card .nc-time {
+  font-family: var(--serif-en); font-size: 30px; font-weight: 500;
+  font-variant-numeric: tabular-nums; line-height: 1;
 }
-.summary-card .sc-label {
-  font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em;
-  margin-top: 4px; text-transform: uppercase;
+.now-card .nc-activity {
+  font-size: 18px; font-weight: 500; line-height: 1.3; flex: 1;
+}
+.now-card .nc-meta { font-size: 12px; opacity: 0.85; margin-top: 8px; line-height: 1.45; }
+
+.upcoming-list {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-bottom: 4px;
+}
+.upcoming-item {
+  display: flex; gap: 10px; align-items: center;
+  padding: 12px 14px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius);
+}
+.upcoming-item .ui-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.upcoming-item .ui-icon i { width: 16px; height: 16px; stroke-width: 1.8; }
+.upcoming-item .ui-time {
+  font-family: var(--serif-en); font-size: 16px; font-weight: 500;
+  min-width: 52px; font-variant-numeric: tabular-nums; color: var(--text);
+}
+.upcoming-item .ui-activity { flex: 1; min-width: 0; font-size: 13.5px; color: var(--text); }
+.upcoming-item .ui-when { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+
+.section-mini-title {
+  font-family: var(--serif-en); font-style: italic; font-size: 11px;
+  color: var(--accent); letter-spacing: 0.24em; text-transform: uppercase;
+  margin: 22px 0 10px;
+}
+
+.member .m-stats {
+  font-size: 10px; color: var(--text-muted); margin-top: 2px;
+  letter-spacing: 0.02em; line-height: 1.2;
+}
+.member.me .m-stats { color: var(--accent-deep); }
+
+.recent-cmt-card {
+  padding: 10px 12px; margin-bottom: 6px;
+  background: var(--surface); border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.recent-cmt-card .rc-dot {
+  width: 8px; height: 8px; border-radius: 50%; margin-top: 7px; flex-shrink: 0;
+}
+.recent-cmt-card .rc-body { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.5; }
+.recent-cmt-card .rc-who { font-weight: 600; margin-right: 6px; font-size: 12px; }
+.recent-cmt-card .rc-where {
+  font-size: 11px; color: var(--text-muted); margin-top: 2px;
 }
 
 /* ========== ITINERARY ========== */
@@ -754,36 +812,14 @@ body {
     <div class="cd-sub" id="countdownSub">출발까지</div>
   </div>
 
+  <div id="nowSection"></div>
+
+  <div class="section-mini-title">Members · 참여 4명</div>
   <div class="members" id="membersBox"></div>
 
-  <div class="info-card">
-    <div class="ic-icon" style="background: var(--mint-soft); color: var(--mint-deep);"><i data-lucide="plane"></i></div>
-    <div class="ic-body">
-      <div class="ic-label">Flight · 항공편</div>
-      <div class="ic-value empty" id="flightInfo">아직 등록 안 됨</div>
-    </div>
-    <button class="ic-edit" onclick="editTripInfo('flight')">수정</button>
-  </div>
+  <div id="infoCards"></div>
 
-  <div class="info-card">
-    <div class="ic-icon" style="background: var(--lavender-soft); color: var(--lavender-deep);"><i data-lucide="bed-double"></i></div>
-    <div class="ic-body">
-      <div class="ic-label">Hotel · 숙소</div>
-      <div class="ic-value empty" id="hotelInfo">아직 등록 안 됨</div>
-    </div>
-    <button class="ic-edit" onclick="editTripInfo('hotel')">수정</button>
-  </div>
-
-  <div class="summary-row">
-    <div class="summary-card">
-      <div class="sc-num">4</div>
-      <div class="sc-label">Members</div>
-    </div>
-    <div class="summary-card">
-      <div class="sc-num">3<span style="font-size:14px;color:var(--text-dim);font-weight:400;">박</span>4<span style="font-size:14px;color:var(--text-dim);font-weight:400;">일</span></div>
-      <div class="sc-label">Duration</div>
-    </div>
-  </div>
+  <div id="recentCommentsSection"></div>
 
   <footer class="app-footer">
     <span class="clock" id="clock">--:--</span>
@@ -957,26 +993,30 @@ var DAY_LABELS = ['Day 1', 'Day 2', 'Day 3', 'Day 4'];
 var DAY_WEEKDAYS = ['5/15 금', '5/16 토', '5/17 일', '5/18 월'];
 var TRIP_START = new Date('2026-05-15T00:00:00');
 
+var HOTEL_URL = 'https://maps.app.goo.gl/gR4Dfb2ecD7iphYb7';
+
 var DEFAULT_EVENTS = [
-  { id:'d1-depart', day:1, time:'09:00', start:'2026-05-15T09:00', activity:'인천공항 출발', category:'비행', fixed:true, notes:['항공편 정보 등록 예정'], actions:[] },
-  { id:'d1-arrive', day:1, time:'14:30', start:'2026-05-15T14:30', activity:'창이공항 도착', category:'비행', fixed:true, notes:['입국심사 · 짐 찾기'], actions:[], lat:1.3644, lng:103.9915 },
-  { id:'d1-checkin', day:1, time:'17:00', start:'2026-05-15T17:00', activity:'호텔 체크인', category:'호텔', fixed:true, notes:['숙소 정보 등록 예정'], actions:[] },
-  { id:'d1-dinner', day:1, time:'19:00', start:'2026-05-15T19:00', activity:'첫 저녁식사', category:'식사', fixed:false, notes:[''], actions:[] },
+  // Day 1 (5/15 금) — 늦은 출발, 자정 도착
+  { id:'d1-depart',  day:1, time:'18:40', start:'2026-05-15T18:40', activity:'KE645 인천 출발', category:'비행',  fixed:true,  notes:['B777-300ER · 좌석 36A · 6시간 15분'], actions:[] },
+  { id:'d1-arrive',  day:1, time:'23:55', start:'2026-05-15T23:55', activity:'창이공항 도착',    category:'비행',  fixed:true,  notes:['싱가포르/창이 터미널 4'], actions:[], lat:1.3644, lng:103.9915 },
+  { id:'d1-checkin', day:1, time:'01:00', start:'2026-05-16T01:00', activity:'호텔 미 로코르 체크인', category:'호텔', fixed:true,  notes:['공항 → 호텔 이동 후 늦은 새벽 체크인'], actions:[], mapUrl: HOTEL_URL },
 
-  { id:'d2-breakfast', day:2, time:'08:00', start:'2026-05-16T08:00', activity:'아침', category:'식사', fixed:false, notes:[''], actions:[] },
-  { id:'d2-marina', day:2, time:'10:00', start:'2026-05-16T10:00', activity:'마리나베이 일대', category:'관광', fixed:false, notes:['멀라이언 · 가든즈 바이 더 베이'], actions:[], lat:1.2839, lng:103.8607 },
-  { id:'d2-lunch', day:2, time:'13:00', start:'2026-05-16T13:00', activity:'점심', category:'식사', fixed:false, notes:[''], actions:[] },
-  { id:'d2-evening', day:2, time:'19:30', start:'2026-05-16T19:30', activity:'야경 · 스카이라인', category:'관광', fixed:false, notes:['Spectra 쇼 20:00 / 21:00'], actions:[], lat:1.2834, lng:103.8607 },
+  // Day 2 (5/16 토) — 첫 풀데이
+  { id:'d2-breakfast', day:2, time:'09:00', start:'2026-05-16T09:00', activity:'아침',               category:'식사', fixed:false, notes:[''], actions:[] },
+  { id:'d2-marina',    day:2, time:'11:00', start:'2026-05-16T11:00', activity:'마리나베이 일대',    category:'관광', fixed:false, notes:['멀라이언 · 가든즈 바이 더 베이'], actions:[], lat:1.2839, lng:103.8607 },
+  { id:'d2-lunch',     day:2, time:'13:00', start:'2026-05-16T13:00', activity:'점심',               category:'식사', fixed:false, notes:[''], actions:[] },
+  { id:'d2-evening',   day:2, time:'19:30', start:'2026-05-16T19:30', activity:'야경 · 스카이라인',  category:'관광', fixed:false, notes:['Spectra 쇼 20:00 / 21:00'], actions:[], lat:1.2834, lng:103.8607 },
 
-  { id:'d3-breakfast', day:3, time:'08:00', start:'2026-05-17T08:00', activity:'아침', category:'식사', fixed:false, notes:[''], actions:[] },
-  { id:'d3-sentosa', day:3, time:'10:00', start:'2026-05-17T10:00', activity:'센토사', category:'관광', fixed:false, notes:['Universal Studios / S.E.A. 아쿠아리움 등'], actions:[], lat:1.2494, lng:103.8303 },
-  { id:'d3-lunch', day:3, time:'13:00', start:'2026-05-17T13:00', activity:'점심', category:'식사', fixed:false, notes:[''], actions:[] },
-  { id:'d3-dinner', day:3, time:'19:00', start:'2026-05-17T19:00', activity:'저녁', category:'식사', fixed:false, notes:[''], actions:[] },
+  // Day 3 (5/17 일) — 둘째 풀데이
+  { id:'d3-breakfast', day:3, time:'08:00', start:'2026-05-17T08:00', activity:'아침',   category:'식사', fixed:false, notes:[''], actions:[] },
+  { id:'d3-sentosa',   day:3, time:'10:00', start:'2026-05-17T10:00', activity:'센토사', category:'관광', fixed:false, notes:['Universal Studios / S.E.A. 아쿠아리움 등'], actions:[], lat:1.2494, lng:103.8303 },
+  { id:'d3-lunch',     day:3, time:'13:00', start:'2026-05-17T13:00', activity:'점심',   category:'식사', fixed:false, notes:[''], actions:[] },
+  { id:'d3-dinner',    day:3, time:'19:00', start:'2026-05-17T19:00', activity:'저녁',   category:'식사', fixed:false, notes:[''], actions:[] },
 
-  { id:'d4-breakfast', day:4, time:'08:00', start:'2026-05-18T08:00', activity:'아침', category:'식사', fixed:false, notes:[''], actions:[] },
-  { id:'d4-checkout', day:4, time:'11:00', start:'2026-05-18T11:00', activity:'호텔 체크아웃', category:'호텔', fixed:true, notes:[''], actions:[] },
-  { id:'d4-shopping', day:4, time:'13:00', start:'2026-05-18T13:00', activity:'마지막 쇼핑·산책', category:'쇼핑', fixed:false, notes:['오차드로드'], actions:[], lat:1.3048, lng:103.8318 },
-  { id:'d4-depart', day:4, time:'18:00', start:'2026-05-18T18:00', activity:'창이공항 출국', category:'비행', fixed:true, notes:['수속 2시간 전'], actions:[], lat:1.3644, lng:103.9915 }
+  // Day 4 (5/18 월) — 새벽 출국
+  { id:'d4-checkout', day:4, time:'05:00', start:'2026-05-18T05:00', activity:'호텔 체크아웃',         category:'호텔', fixed:true, notes:['공항 이동 · 출국 2시간 전 도착'], actions:[], mapUrl: HOTEL_URL },
+  { id:'d4-depart',   day:4, time:'07:30', start:'2026-05-18T07:30', activity:'KE648 창이 출발',       category:'비행', fixed:true, notes:['B787-10 · 좌석 40C · 싱가포르/창이 터미널 4 · 6시간 30분'], actions:[], lat:1.3644, lng:103.9915 },
+  { id:'d4-arrive',   day:4, time:'15:00', start:'2026-05-18T15:00', activity:'인천 도착',             category:'비행', fixed:true, notes:['서울/인천 터미널 2'], actions:[] }
 ];
 
 // ============================================================
@@ -1056,7 +1096,7 @@ function selectUser(name) {
   localStorage.setItem('singapore-user', name);
   applyUserBadge();
   document.getElementById('userOverlay').classList.add('hidden');
-  renderMembers();
+  renderHomeView();
   renderAllEvents();
 }
 function switchUser() {
@@ -1080,20 +1120,181 @@ if (currentUser) {
 }
 
 // ============================================================
-// Members box
+// Home dashboard
 // ============================================================
-function renderMembers() {
+function renderHomeView() {
+  renderNowSection();
+  renderHomeMembers();
+  renderInfoCards();
+  renderRecentComments();
+  refreshIcons();
+}
+
+function renderNowSection() {
+  var box = document.getElementById('nowSection');
+  if (!box) return;
+  var now = new Date();
+  var sorted = eventsData.slice().sort(function(a, b) {
+    return new Date(a.start) - new Date(b.start);
+  });
+  var nowEvt = null;
+  var upcoming = [];
+  for (var i = 0; i < sorted.length; i++) {
+    var evt = sorted[i];
+    var start = new Date(evt.start);
+    var next = sorted[i+1];
+    var end = next ? new Date(next.start) : new Date(start.getTime() + 90*60*1000);
+    if (now >= start && now < end && !nowEvt) nowEvt = evt;
+    else if (now < start) upcoming.push(evt);
+  }
+
+  var html = '';
+  if (nowEvt) {
+    var cat0 = CATEGORIES[nowEvt.category || ''];
+    html += '<div class="now-card">';
+    html += '<div class="nc-tag">Now · 진행 중</div>';
+    html += '<div class="nc-row"><span class="nc-time">' + esc(nowEvt.time) + '</span>';
+    html += '<span class="nc-activity">' + esc(nowEvt.activity) + '</span></div>';
+    if (nowEvt.notes && nowEvt.notes[0]) html += '<div class="nc-meta">' + esc(nowEvt.notes[0]) + '</div>';
+    html += '</div>';
+  }
+
+  var nextTwo = upcoming.slice(0, nowEvt ? 2 : 3);
+  if (nextTwo.length) {
+    html += '<div class="section-mini-title">' + (nowEvt ? 'Next · 다음' : (now < TRIP_START ? 'Coming up · 예정' : 'Next · 다음')) + '</div>';
+    html += '<div class="upcoming-list">';
+    nextTwo.forEach(function(evt) {
+      var cat = CATEGORIES[evt.category || ''];
+      var color = cat ? cat.color : '#9893A4';
+      var bg = cat ? cat.bg : 'var(--surface-2)';
+      var icon = cat ? cat.icon : 'circle';
+      var diff = Math.round((new Date(evt.start) - now) / (60*1000));
+      var whenStr = '';
+      if (diff <= 0) whenStr = '곧';
+      else if (diff < 60) whenStr = diff + '분 후';
+      else if (diff < 1440) whenStr = Math.round(diff/60) + '시간 후';
+      else whenStr = Math.round(diff/1440) + '일 후';
+      html += '<div class="upcoming-item">';
+      html += '<span class="ui-icon" style="background:' + bg + ';color:' + color + ';"><i data-lucide="' + icon + '"></i></span>';
+      html += '<span class="ui-time">' + esc(evt.time) + '</span>';
+      html += '<span class="ui-activity">' + esc(evt.activity) + '</span>';
+      html += '<span class="ui-when">' + whenStr + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  box.innerHTML = html;
+}
+
+function renderHomeMembers() {
+  var box = document.getElementById('membersBox');
+  if (!box) return;
+  var stats = {};
+  USERS.forEach(function(u) { stats[u] = { rates: 0, comments: 0 }; });
+  Object.keys(allScores).forEach(function(id) {
+    var s = allScores[id];
+    USERS.forEach(function(u) { if (s[u] > 0) stats[u].rates++; });
+  });
+  Object.keys(allComments).forEach(function(id) {
+    allComments[id].forEach(function(c) { if (stats[c.user]) stats[c.user].comments++; });
+  });
+  Object.keys(allDayComments).forEach(function(d) {
+    allDayComments[d].forEach(function(c) { if (stats[c.user]) stats[c.user].comments++; });
+  });
+
   var html = '';
   USERS.forEach(function(name) {
     var isMe = name === currentUser;
+    var st = stats[name];
     html += '<div class="member' + (isMe ? ' me' : '') + '">';
     html += '<span class="m-dot" style="background:' + USER_COLORS[name] + '">' + esc(name.charAt(0)) + '</span>';
     html += '<span class="m-name">' + esc(name) + '</span>';
+    if (st.rates > 0 || st.comments > 0) {
+      var parts = [];
+      if (st.rates > 0) parts.push('★ ' + st.rates);
+      if (st.comments > 0) parts.push('💬 ' + st.comments);
+      html += '<span class="m-stats">' + parts.join(' · ') + '</span>';
+    }
     html += '</div>';
   });
-  document.getElementById('membersBox').innerHTML = html;
+  box.innerHTML = html;
 }
-renderMembers();
+
+function renderInfoCards() {
+  var box = document.getElementById('infoCards');
+  if (!box) return;
+  var flight = allInfo.flight && allInfo.flight.value;
+  var hotel = allInfo.hotel && allInfo.hotel.value;
+  var hotelUrl = allInfo.hotel && allInfo.hotel.url;
+  var flightUrl = allInfo.flight && allInfo.flight.url;
+  var html = '';
+
+  html += '<div class="info-card">';
+  html += '<div class="ic-icon" style="background: var(--mint-soft); color: var(--mint-deep);"><i data-lucide="plane"></i></div>';
+  html += '<div class="ic-body"><div class="ic-label">Flight · 항공편</div>';
+  if (flight) {
+    html += '<div class="ic-value">' + esc(flight) + '</div>';
+    if (flightUrl) html += '<div style="margin-top:4px;"><a href="' + esc(flightUrl) + '" target="_blank" style="font-size:11px;color:var(--mint-deep);">예약 확인 →</a></div>';
+  } else {
+    html += '<div class="ic-value empty">아직 등록 안 됨</div>';
+  }
+  html += '</div>';
+  html += '<button class="ic-edit" onclick="editTripInfo(\'flight\')">수정</button>';
+  html += '</div>';
+
+  html += '<div class="info-card">';
+  html += '<div class="ic-icon" style="background: var(--lavender-soft); color: var(--lavender-deep);"><i data-lucide="bed-double"></i></div>';
+  html += '<div class="ic-body"><div class="ic-label">Hotel · 숙소</div>';
+  if (hotel) {
+    html += '<div class="ic-value">' + esc(hotel) + '</div>';
+    if (hotelUrl) html += '<div style="margin-top:4px;"><a href="' + esc(hotelUrl) + '" target="_blank" style="font-size:11px;color:var(--lavender-deep);">구글맵 열기 →</a></div>';
+  } else {
+    html += '<div class="ic-value empty">아직 등록 안 됨</div>';
+  }
+  html += '</div>';
+  html += '<button class="ic-edit" onclick="editTripInfo(\'hotel\')">수정</button>';
+  html += '</div>';
+
+  box.innerHTML = html;
+}
+
+function renderRecentComments() {
+  var box = document.getElementById('recentCommentsSection');
+  if (!box) return;
+  var all = [];
+  Object.keys(allComments).forEach(function(eventId) {
+    allComments[eventId].forEach(function(c) {
+      var evt = eventsData.find(function(e) { return e.id === eventId; });
+      all.push({ user: c.user, text: c.text, ts: c.ts, where: evt ? evt.activity : '' });
+    });
+  });
+  Object.keys(allDayComments).forEach(function(day) {
+    allDayComments[day].forEach(function(c) {
+      var idx = parseInt(day.replace('day','')) - 1;
+      all.push({ user: c.user, text: c.text, ts: c.ts, where: DAY_LABELS[idx] + ' 총평' });
+    });
+  });
+  all.sort(function(a, b) {
+    var at = a.ts ? a.ts.seconds : 0;
+    var bt = b.ts ? b.ts.seconds : 0;
+    return bt - at;
+  });
+  if (!all.length) { box.innerHTML = ''; return; }
+  var html = '<div class="section-mini-title">Recent · 최근 코멘트</div>';
+  all.slice(0, 3).forEach(function(c) {
+    var color = USER_COLORS[c.user] || '#9893A4';
+    html += '<div class="recent-cmt-card">';
+    html += '<span class="rc-dot" style="background:' + color + '"></span>';
+    html += '<div class="rc-body">';
+    html += '<div><span class="rc-who" style="color:' + color + '">' + esc(c.user) + '</span>' + esc(c.text) + '</div>';
+    if (c.where) html += '<div class="rc-where">— ' + esc(c.where) + '</div>';
+    html += '</div></div>';
+  });
+  box.innerHTML = html;
+}
+
+renderHomeView();
 
 // ============================================================
 // View switching
@@ -1176,6 +1377,7 @@ function renderAllEvents() {
   applyCommentsUI();
   applyDayCommentsUI();
   updateTimeline();
+  renderHomeView();
   refreshIcons();
 }
 
@@ -1714,20 +1916,10 @@ function saveTripInfo() {
   tripRef.collection('info').doc(editingInfoKey).set({ value: val });
   closeInfoModal();
 }
-function applyInfoUI() {
-  var flight = allInfo.flight && allInfo.flight.value;
-  var hotel = allInfo.hotel && allInfo.hotel.value;
-  var fe = document.getElementById('flightInfo');
-  var he = document.getElementById('hotelInfo');
-  if (flight) { fe.textContent = flight; fe.classList.remove('empty'); }
-  else { fe.textContent = '아직 등록 안 됨'; fe.classList.add('empty'); }
-  if (hotel) { he.textContent = hotel; he.classList.remove('empty'); }
-  else { he.textContent = '아직 등록 안 됨'; he.classList.add('empty'); }
-}
 tripRef.collection('info').onSnapshot(function(snap) {
   allInfo = {};
   snap.forEach(function(doc) { allInfo[doc.id] = doc.data(); });
-  applyInfoUI();
+  renderHomeView();
   // exchange rate
   if (allInfo.settings && allInfo.settings.exchangeRate) {
     exchangeRate = Number(allInfo.settings.exchangeRate) || 0;
@@ -1739,6 +1931,38 @@ function saveExchangeRate(val) {
   var v = parseFloat(val) || 0;
   tripRef.collection('info').doc('settings').set({ exchangeRate: v }, { merge: true });
 }
+
+// ============================================================
+// 데이터 마이그레이션 (한 번만 실행 — PC 브라우저 콘솔에서)
+// 사용법: window.migrateEvents()
+// ============================================================
+window.migrateEvents = function() {
+  if (!confirm('events 컬렉션을 새 기본값으로 갈아엎습니다.\n(별점·코멘트·비용은 보존됩니다)\n\n계속할까요?')) return;
+  tripRef.collection('events').get().then(function(snap) {
+    var batch = db.batch();
+    snap.forEach(function(doc) { batch.delete(doc.ref); });
+    return batch.commit();
+  }).then(function() {
+    var batch = db.batch();
+    DEFAULT_EVENTS.forEach(function(evt) {
+      batch.set(tripRef.collection('events').doc(evt.id), evt);
+    });
+    batch.set(tripRef.collection('info').doc('flight'), {
+      value: 'KE645 · 5/15 ICN 18:40 → SIN 23:55  /  KE648 · 5/18 SIN 07:30 → ICN 15:00',
+      url: ''
+    });
+    batch.set(tripRef.collection('info').doc('hotel'), {
+      value: '호텔 미 로코르 (Hotel Mi Rochor)',
+      url: HOTEL_URL
+    });
+    return batch.commit();
+  }).then(function() {
+    alert('마이그레이션 완료! 자동으로 새 일정·호텔·항공편이 표시됩니다.');
+  }).catch(function(e) {
+    alert('실패: ' + e.message);
+  });
+};
+console.log('💡 기본 일정/호텔/항공편 갱신하려면 콘솔에 다음 입력: window.migrateEvents()');
 
 // ============================================================
 // Comments view
@@ -1990,6 +2214,7 @@ function updateTimeline() {
     if (clockEl) clockEl.textContent = mo + '/' + dd + '  ' + hh + ':' + mm;
     updateTimeline();
     updateCountdown();
+    renderHomeView();
   }
   tick();
   setInterval(tick, 30000);
