@@ -420,6 +420,7 @@ body {
   font-size: 12px; font-family: var(--sans); cursor: pointer;
 }
 .evt-summary .es-comments i { width: 13px; height: 13px; }
+.evt-summary .es-comments.has-comments { background: var(--accent-soft); color: var(--accent); }
 .evt-summary .es-comments:active { background: var(--accent-soft); color: var(--accent); }
 .evt-summary .es-ratings { display: inline-flex; gap: 10px; flex-wrap: wrap; }
 .evt-summary .es-rate {
@@ -964,6 +965,15 @@ body {
       </div>
       <div id="mapUrlStatus" style="font-size:11px;margin-top:6px;display:none;"></div>
     </div>
+    <div class="edit-field">
+      <label>GPS 좌표 (선택)</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="editLat" placeholder="위도 (예: 1.3005)" style="flex:1;" oninput="onCoordsInput()">
+        <input type="text" id="editLng" placeholder="경도 (예: 103.8555)" style="flex:1;" oninput="onCoordsInput()">
+      </div>
+      <div id="coordStatus" style="font-size:11px;margin-top:6px;display:none;"></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">구글맵 링크 입력 시 자동 추출 · 직접 수정도 가능</div>
+    </div>
     <div class="edit-modal-actions">
       <button class="btn-save" onclick="saveEvent()">저장</button>
       <button class="btn-delete" id="editDeleteBtn" onclick="confirmDeleteEvent()" style="display:none">삭제</button>
@@ -1495,7 +1505,7 @@ function buildEventHTML(evt) {
   var scoreEntries = USERS.filter(function(u) { return scores[u] > 0; });
   var commentCount = (allComments[evt.id] || []).length;
   h += '<div class="evt-summary">';
-  h += '<button class="es-comments" onclick="toggleDetail(\'' + evt.id + '\',\'comments\')"><i data-lucide="message-circle"></i><span>' + (commentCount > 0 ? commentCount + '개' : '코멘트') + '</span></button>';
+  h += '<button class="es-comments' + (commentCount > 0 ? ' has-comments' : '') + '" onclick="toggleDetail(\'' + evt.id + '\',\'comments\')"><i data-lucide="message-circle"></i><span>' + (commentCount > 0 ? commentCount + '개' : '코멘트') + '</span></button>';
   if (scoreEntries.length) {
     h += '<span class="es-ratings">';
     scoreEntries.forEach(function(u) {
@@ -1674,10 +1684,36 @@ function previewMapUrl() {
     el.style.display = 'block';
     el.style.color = 'var(--mint-deep)';
     el.textContent = '✓ 좌표 추출됨: ' + coords.lat.toFixed(4) + ', ' + coords.lng.toFixed(4) + ' — 지도 핀 자동 등록';
+    document.getElementById('editLat').value = coords.lat;
+    document.getElementById('editLng').value = coords.lng;
+    updateCoordStatus(true);
   } else {
     el.style.display = 'block';
     el.style.color = 'var(--accent-deep)';
     el.textContent = '⚠ 짧은 링크인 듯 — 클릭 시 구글맵 열림 (자동 핀 불가, PC URL 권장)';
+  }
+}
+function onCoordsInput() {
+  var latVal = document.getElementById('editLat').value.trim();
+  var lngVal = document.getElementById('editLng').value.trim();
+  if (!latVal && !lngVal) { updateCoordStatus(false); return; }
+  var lat = parseFloat(latVal), lng = parseFloat(lngVal);
+  var valid = !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+  updateCoordStatus(valid);
+}
+function updateCoordStatus(valid) {
+  var el = document.getElementById('coordStatus');
+  if (!el) return;
+  var latVal = document.getElementById('editLat').value.trim();
+  var lngVal = document.getElementById('editLng').value.trim();
+  if (!latVal && !lngVal) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  if (valid) {
+    el.style.color = 'var(--mint-deep)';
+    el.textContent = '✓ 좌표 유효 — 저장 시 지도 핀 등록됨';
+  } else {
+    el.style.color = 'var(--accent-deep)';
+    el.textContent = '⚠ 위도(-90~90), 경도(-180~180) 범위의 숫자를 입력하세요';
   }
 }
 function openAddModal(day) {
@@ -1690,7 +1726,10 @@ function openAddModal(day) {
   document.getElementById('editActivity').value = '';
   buildCategorySelect('');
   document.getElementById('editMapUrl').value = '';
+  document.getElementById('editLat').value = '';
+  document.getElementById('editLng').value = '';
   resetMapUrlStatus();
+  updateCoordStatus(false);
   document.getElementById('editDeleteBtn').style.display = 'none';
   document.getElementById('editModal').classList.add('open');
 }
@@ -1711,8 +1750,11 @@ function openEditModal(id) {
   if (evt.mapUrl) { mapInput.value = evt.mapUrl; }
   else if (evt.lat && evt.lng) { mapInput.value = 'https://www.google.com/maps?q=' + evt.lat + ',' + evt.lng; }
   else { mapInput.value = ''; }
+  document.getElementById('editLat').value = evt.lat || '';
+  document.getElementById('editLng').value = evt.lng || '';
   resetMapUrlStatus();
   previewMapUrl();
+  onCoordsInput();
   document.getElementById('editDeleteBtn').style.display = editMode ? 'block' : 'none';
   document.getElementById('editModal').classList.add('open');
   if (match) setTimeout(function() { match.scrollIntoView({ block: 'center', behavior: 'instant' }); }, 50);
@@ -1725,19 +1767,28 @@ function saveEvent() {
   var activity = document.getElementById('editActivity').value.trim();
   var category = document.getElementById('editCategory').value;
   var mapUrl = document.getElementById('editMapUrl').value.trim();
+  var latInput = document.getElementById('editLat').value.trim();
+  var lngInput = document.getElementById('editLng').value.trim();
   if (!time || !activity) { alert('시간과 활동명을 입력하세요'); return; }
   var dateStr = DAY_DATES[editingDay - 1];
   var start = dateStr + 'T' + time;
-  var coords = extractCoords(mapUrl);
+
+  // 좌표 필드 직접 입력값 우선, 없으면 URL에서 추출
+  var finalLat = parseFloat(latInput), finalLng = parseFloat(lngInput);
+  var hasManualCoords = !isNaN(finalLat) && !isNaN(finalLng) && finalLat >= -90 && finalLat <= 90 && finalLng >= -180 && finalLng <= 180;
+  if (!hasManualCoords) {
+    var coords = extractCoords(mapUrl);
+    if (coords) { finalLat = coords.lat; finalLng = coords.lng; hasManualCoords = true; }
+  }
 
   if (editingId) {
     var update = {
       day: editingDay, time: time, start: start, activity: activity, category: category
     };
-    if (coords) {
-      update.lat = coords.lat;
-      update.lng = coords.lng;
-      update.mapUrl = mapUrl;
+    if (hasManualCoords) {
+      update.lat = finalLat;
+      update.lng = finalLng;
+      update.mapUrl = mapUrl || firebase.firestore.FieldValue.delete();
     } else if (mapUrl) {
       update.mapUrl = mapUrl;
       update.lat = firebase.firestore.FieldValue.delete();
@@ -1754,7 +1805,7 @@ function saveEvent() {
       id: id, day: editingDay, time: time, start: start, activity: activity, category: category,
       fixed: false, tag: '', tagDim: false, notes: [], warnNotes: [], actions: []
     };
-    if (coords) { payload.lat = coords.lat; payload.lng = coords.lng; payload.mapUrl = mapUrl; }
+    if (hasManualCoords) { payload.lat = finalLat; payload.lng = finalLng; if (mapUrl) payload.mapUrl = mapUrl; }
     else if (mapUrl) { payload.mapUrl = mapUrl; }
     tripRef.collection('events').doc(id).set(payload);
   }
