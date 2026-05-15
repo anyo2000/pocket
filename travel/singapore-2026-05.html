@@ -1128,7 +1128,7 @@ var currentUser = localStorage.getItem('singapore-user');
 function renderUserPicker() {
   var html = '';
   USERS.forEach(function(name) {
-    var initial = name.charAt(0);
+    var initial = name.charAt(name.length - 1);
     html += '<button class="user-btn" onclick="selectUser(\'' + name + '\')">';
     html += '<span class="ub-dot" style="background:' + USER_COLORS[name] + '">' + esc(initial) + '</span>';
     html += esc(name) + '</button>';
@@ -1154,7 +1154,7 @@ function applyUserBadge() {
   var badge = document.getElementById('userBadge');
   badge.style.display = 'flex';
   document.getElementById('userBadgeDot').style.background = USER_COLORS[currentUser];
-  document.getElementById('userBadgeDot').textContent = currentUser.charAt(0);
+  document.getElementById('userBadgeDot').textContent = currentUser.charAt(currentUser.length - 1);
   document.getElementById('userBadgeName').textContent = currentUser;
 }
 
@@ -1253,7 +1253,7 @@ function renderHomeMembers() {
     var isMe = name === currentUser;
     var st = stats[name];
     html += '<div class="member' + (isMe ? ' me' : '') + '">';
-    html += '<span class="m-dot" style="background:' + USER_COLORS[name] + '">' + esc(name.charAt(0)) + '</span>';
+    html += '<span class="m-dot" style="background:' + USER_COLORS[name] + '">' + esc(name.charAt(name.length - 1)) + '</span>';
     html += '<span class="m-name">' + esc(name) + '</span>';
     if (st.rates > 0 || st.comments > 0) {
       var parts = [];
