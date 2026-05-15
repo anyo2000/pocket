@@ -2305,7 +2305,8 @@ function exportNotes() {
 // Day tab switching
 // ============================================================
 function getTodayDay() {
-  var today = new Date().toISOString().slice(0, 10);
+  var now = new Date();
+  var today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
   for (var i = 0; i < DAY_DATES.length; i++) {
     if (DAY_DATES[i] === today) return i + 1;
   }
