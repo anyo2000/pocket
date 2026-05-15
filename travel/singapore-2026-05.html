@@ -1378,6 +1378,7 @@ function switchView(view) {
   document.querySelectorAll('.nav-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.view === view);
   });
+  if (view === 'itinerary') showDay(getTodayDay());
   if (view === 'comments') renderCommentsView();
   if (view === 'costs') renderCostsView();
   refreshIcons();
@@ -2303,6 +2304,13 @@ function exportNotes() {
 // ============================================================
 // Day tab switching
 // ============================================================
+function getTodayDay() {
+  var today = new Date().toISOString().slice(0, 10);
+  for (var i = 0; i < DAY_DATES.length; i++) {
+    if (DAY_DATES[i] === today) return i + 1;
+  }
+  return currentDayView;
+}
 function showDay(day) {
   currentDayView = day;
   document.querySelectorAll('.day-tab').forEach(function(t, i) {
