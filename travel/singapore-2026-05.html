@@ -648,27 +648,34 @@ body {
   text-align: center; cursor: pointer; color: var(--text);
 }
 .day-pick-btn.selected { background: var(--accent); color: white; border-color: var(--accent); }
-.time-grid {
-  display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px;
-  padding: 2px;
+.time-dial-wrap {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
 }
-.time-slot {
-  padding: 5px 0; border: 1px solid var(--border); border-radius: 5px;
-  background: var(--surface); font-family: var(--serif-en); font-size: 13px;
-  text-align: center; cursor: pointer; color: var(--text);
+.time-dial {
+  position: relative; height: 120px; overflow: hidden;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
 }
-.time-slot:active { background: var(--accent-soft); }
-.time-slot.selected { background: var(--accent); color: white; border-color: var(--accent); }
-.minute-toggle {
-  display: flex; gap: 6px; margin-top: 8px;
+.time-dial.hour { width: 72px; }
+.time-dial.minute { width: 64px; }
+.time-dial-inner {
+  transition: transform 0.25s ease;
 }
-.minute-btn {
-  flex: 1; padding: 6px 0; border: 1px solid var(--border); border-radius: 5px;
-  background: var(--surface); font-family: var(--serif-en); font-size: 13px;
-  text-align: center; cursor: pointer; color: var(--text);
+.time-dial-item {
+  height: 40px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif-en); font-size: 22px; color: var(--text-muted);
+  user-select: none; cursor: pointer;
 }
-.minute-btn:active { background: var(--accent-soft); }
-.minute-btn.selected { background: var(--accent); color: white; border-color: var(--accent); }
+.time-dial-item.selected {
+  font-size: 26px; font-weight: 600; color: var(--text);
+}
+.time-dial::after {
+  content: ''; position: absolute; left: 6px; right: 6px; top: 40px; height: 40px;
+  border-top: 1.5px solid var(--accent); border-bottom: 1.5px solid var(--accent);
+  pointer-events: none; border-radius: 2px;
+}
+.time-dial-colon {
+  font-family: var(--serif-en); font-size: 26px; font-weight: 600; color: var(--text);
+}
 .edit-modal-actions { display: flex; gap: 8px; margin-top: 18px; }
 .edit-modal-actions button {
   flex: 1; padding: 12px; border-radius: 8px; font-size: 14px;
@@ -953,10 +960,10 @@ body {
     </div>
     <div class="edit-field">
       <label>시간</label>
-      <div class="time-grid" id="timeGrid"></div>
-      <div class="minute-toggle">
-        <button class="minute-btn selected" data-min="00" onclick="pickMinute(this)">:00</button>
-        <button class="minute-btn" data-min="30" onclick="pickMinute(this)">:30</button>
+      <div class="time-dial-wrap">
+        <div class="time-dial hour" id="hourDial"><div class="time-dial-inner" id="hourInner"></div></div>
+        <span class="time-dial-colon">:</span>
+        <div class="time-dial minute" id="minuteDial"><div class="time-dial-inner" id="minuteInner"></div></div>
       </div>
     </div>
     <div class="edit-field">
@@ -1651,33 +1658,95 @@ function pickDay(d) {
     b.classList.toggle('selected', Number(b.dataset.day) === d);
   });
 }
-var selectedHour = '';
+var selectedHour = '08';
 var selectedMinute = '00';
-function buildTimeGrid() {
-  var grid = document.getElementById('timeGrid');
-  var html = '';
-  for (var h = 0; h <= 23; h++) {
-    var hh = String(h).padStart(2, '0');
-    html += '<div class="time-slot" data-hour="' + hh + '" onclick="pickHour(this)">' + h + '</div>';
-  }
-  grid.innerHTML = html;
+var HOUR_VALUES = [];
+for (var _h = 0; _h <= 23; _h++) HOUR_VALUES.push(String(_h).padStart(2, '0'));
+var MINUTE_VALUES = ['00', '30'];
+
+function buildTimeDial() {
+  buildDialItems('hourInner', HOUR_VALUES, selectedHour);
+  buildDialItems('minuteInner', MINUTE_VALUES, selectedMinute);
+  setupDialTouch('hourDial', 'hourInner', HOUR_VALUES, function(v) { selectedHour = v; syncSelectedTime(); });
+  setupDialTouch('minuteDial', 'minuteInner', MINUTE_VALUES, function(v) { selectedMinute = v; syncSelectedTime(); });
 }
-function pickHour(el) {
-  document.querySelectorAll('.time-slot').forEach(function(s) { s.classList.remove('selected'); });
-  el.classList.add('selected');
-  selectedHour = el.dataset.hour;
+function syncSelectedTime() {
   selectedTime = selectedHour + ':' + selectedMinute;
 }
-function pickMinute(el) {
-  document.querySelectorAll('.minute-btn').forEach(function(s) { s.classList.remove('selected'); });
-  el.classList.add('selected');
-  selectedMinute = el.dataset.min;
-  if (selectedHour) selectedTime = selectedHour + ':' + selectedMinute;
+function buildDialItems(innerId, values, current) {
+  var inner = document.getElementById(innerId);
+  var html = '';
+  for (var i = 0; i < values.length; i++) {
+    var sel = values[i] === current ? ' selected' : '';
+    html += '<div class="time-dial-item' + sel + '" data-val="' + values[i] + '">' + values[i] + '</div>';
+  }
+  inner.innerHTML = html;
+  var idx = values.indexOf(current);
+  if (idx < 0) idx = 0;
+  inner.style.transform = 'translateY(' + (-idx * 40) + 'px)';
 }
-function resetMinuteToggle(min) {
-  document.querySelectorAll('.minute-btn').forEach(function(b) {
-    b.classList.toggle('selected', b.dataset.min === min);
+function setupDialTouch(dialId, innerId, values, onChange) {
+  var dial = document.getElementById(dialId);
+  var inner = document.getElementById(innerId);
+  var startY = 0, startOffset = 0, currentIdx = 0;
+  var idx = values.indexOf(inner.querySelector('.selected') ? inner.querySelector('.selected').dataset.val : values[0]);
+  currentIdx = idx >= 0 ? idx : 0;
+
+  dial.addEventListener('touchstart', function(e) {
+    inner.style.transition = 'none';
+    startY = e.touches[0].clientY;
+    startOffset = -currentIdx * 40;
+  }, { passive: true });
+
+  dial.addEventListener('touchmove', function(e) {
+    var dy = e.touches[0].clientY - startY;
+    var raw = startOffset + dy;
+    var maxOff = 0, minOff = -(values.length - 1) * 40;
+    raw = Math.max(minOff - 20, Math.min(maxOff + 20, raw));
+    inner.style.transform = 'translateY(' + raw + 'px)';
+  }, { passive: true });
+
+  dial.addEventListener('touchend', function(e) {
+    inner.style.transition = 'transform 0.25s ease';
+    var dy = e.changedTouches[0].clientY - startY;
+    var raw = startOffset + dy;
+    var newIdx = Math.round(-raw / 40);
+    newIdx = Math.max(0, Math.min(values.length - 1, newIdx));
+    currentIdx = newIdx;
+    inner.style.transform = 'translateY(' + (-currentIdx * 40) + 'px)';
+    updateDialSelection(inner, values, currentIdx);
+    onChange(values[currentIdx]);
+  }, { passive: true });
+
+  dial.addEventListener('click', function(e) {
+    var item = e.target.closest('.time-dial-item');
+    if (!item) return;
+    var clickIdx = values.indexOf(item.dataset.val);
+    if (clickIdx < 0) return;
+    currentIdx = clickIdx;
+    inner.style.transition = 'transform 0.25s ease';
+    inner.style.transform = 'translateY(' + (-currentIdx * 40) + 'px)';
+    updateDialSelection(inner, values, currentIdx);
+    onChange(values[currentIdx]);
   });
+
+  dial._setIdx = function(i) {
+    currentIdx = Math.max(0, Math.min(values.length - 1, i));
+    inner.style.transition = 'transform 0.25s ease';
+    inner.style.transform = 'translateY(' + (-currentIdx * 40) + 'px)';
+    updateDialSelection(inner, values, currentIdx);
+  };
+}
+function updateDialSelection(inner, values, idx) {
+  inner.querySelectorAll('.time-dial-item').forEach(function(el, i) {
+    el.classList.toggle('selected', i === idx);
+  });
+}
+function setDialValue(dialId, values, val) {
+  var dial = document.getElementById(dialId);
+  var idx = values.indexOf(val);
+  if (idx < 0) idx = 0;
+  if (dial._setIdx) dial._setIdx(idx);
 }
 function buildCategorySelect(current) {
   var sel = document.getElementById('editCategory');
@@ -1711,13 +1780,12 @@ function previewMapUrl() {
 function openAddModal(day) {
   editingId = null;
   editingDay = day || currentDayView || 1;
-  selectedHour = '';
+  selectedHour = '08';
   selectedMinute = '00';
-  selectedTime = '';
+  selectedTime = '08:00';
   document.getElementById('editModalTitle').textContent = '일정 추가';
   buildDayPick(editingDay);
-  buildTimeGrid();
-  resetMinuteToggle('00');
+  buildTimeDial();
   document.getElementById('editActivity').value = '';
   buildCategorySelect('');
   document.getElementById('editMapUrl').value = '';
@@ -1736,10 +1804,11 @@ function openEditModal(id) {
   selectedTime = evt.time;
   document.getElementById('editModalTitle').textContent = '일정 수정';
   buildDayPick(editingDay);
-  buildTimeGrid();
-  var match = document.querySelector('.time-slot[data-hour="' + selectedHour + '"]');
-  if (match) match.classList.add('selected');
-  resetMinuteToggle(selectedMinute);
+  buildTimeDial();
+  setTimeout(function() {
+    setDialValue('hourDial', HOUR_VALUES, selectedHour);
+    setDialValue('minuteDial', MINUTE_VALUES, selectedMinute);
+  }, 50);
   document.getElementById('editActivity').value = evt.activity;
   buildCategorySelect(evt.category || '');
   var mapInput = document.getElementById('editMapUrl');
@@ -1750,7 +1819,6 @@ function openEditModal(id) {
   previewMapUrl();
   document.getElementById('editDeleteBtn').style.display = editMode ? 'block' : 'none';
   document.getElementById('editModal').classList.add('open');
-  if (match) setTimeout(function() { match.scrollIntoView({ block: 'center', behavior: 'instant' }); }, 50);
 }
 function closeEditModal() {
   document.getElementById('editModal').classList.remove('open');
