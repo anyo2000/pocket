@@ -649,17 +649,27 @@ body {
 }
 .day-pick-btn.selected { background: var(--accent); color: white; border-color: var(--accent); }
 .time-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
-  max-height: 200px; overflow-y: auto; padding: 2px;
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px;
+  padding: 2px;
 }
 .time-slot {
-  padding: 8px 0; border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 0; border: 1px solid var(--border); border-radius: 6px;
   background: var(--surface); font-family: var(--serif-en); font-size: 14px;
   text-align: center; cursor: pointer; color: var(--text);
   font-variant-numeric: tabular-nums;
 }
 .time-slot:active { background: var(--accent-soft); }
 .time-slot.selected { background: var(--accent); color: white; border-color: var(--accent); }
+.minute-toggle {
+  display: flex; gap: 6px; margin-top: 8px;
+}
+.minute-btn {
+  flex: 1; padding: 8px 0; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface); font-family: var(--serif-en); font-size: 14px;
+  text-align: center; cursor: pointer; color: var(--text);
+}
+.minute-btn:active { background: var(--accent-soft); }
+.minute-btn.selected { background: var(--accent); color: white; border-color: var(--accent); }
 .edit-modal-actions { display: flex; gap: 8px; margin-top: 18px; }
 .edit-modal-actions button {
   flex: 1; padding: 12px; border-radius: 8px; font-size: 14px;
@@ -945,6 +955,10 @@ body {
     <div class="edit-field">
       <label>시간</label>
       <div class="time-grid" id="timeGrid"></div>
+      <div class="minute-toggle">
+        <button class="minute-btn selected" data-min="00" onclick="pickMinute(this)">정각 :00</button>
+        <button class="minute-btn" data-min="30" onclick="pickMinute(this)">반 :30</button>
+      </div>
     </div>
     <div class="edit-field">
       <label>활동명</label>
@@ -1646,20 +1660,33 @@ function pickDay(d) {
     b.classList.toggle('selected', Number(b.dataset.day) === d);
   });
 }
+var selectedHour = '';
+var selectedMinute = '00';
 function buildTimeGrid() {
   var grid = document.getElementById('timeGrid');
   var html = '';
   for (var h = 0; h <= 23; h++) {
     var hh = String(h).padStart(2, '0');
-    html += '<div class="time-slot" data-time="' + hh + ':00" onclick="pickTime(this)">' + hh + ':00</div>';
-    html += '<div class="time-slot" data-time="' + hh + ':30" onclick="pickTime(this)">' + hh + ':30</div>';
+    html += '<div class="time-slot" data-hour="' + hh + '" onclick="pickHour(this)">' + h + '</div>';
   }
   grid.innerHTML = html;
 }
-function pickTime(el) {
+function pickHour(el) {
   document.querySelectorAll('.time-slot').forEach(function(s) { s.classList.remove('selected'); });
   el.classList.add('selected');
-  selectedTime = el.dataset.time;
+  selectedHour = el.dataset.hour;
+  selectedTime = selectedHour + ':' + selectedMinute;
+}
+function pickMinute(el) {
+  document.querySelectorAll('.minute-btn').forEach(function(s) { s.classList.remove('selected'); });
+  el.classList.add('selected');
+  selectedMinute = el.dataset.min;
+  if (selectedHour) selectedTime = selectedHour + ':' + selectedMinute;
+}
+function resetMinuteToggle(min) {
+  document.querySelectorAll('.minute-btn').forEach(function(b) {
+    b.classList.toggle('selected', b.dataset.min === min);
+  });
 }
 function buildCategorySelect(current) {
   var sel = document.getElementById('editCategory');
@@ -1718,11 +1745,14 @@ function updateCoordStatus(valid) {
 }
 function openAddModal(day) {
   editingId = null;
-  editingDay = day || 1;
+  editingDay = day || currentDayView || 1;
+  selectedHour = '';
+  selectedMinute = '00';
   selectedTime = '';
   document.getElementById('editModalTitle').textContent = '일정 추가';
   buildDayPick(editingDay);
   buildTimeGrid();
+  resetMinuteToggle('00');
   document.getElementById('editActivity').value = '';
   buildCategorySelect('');
   document.getElementById('editMapUrl').value = '';
@@ -1738,12 +1768,16 @@ function openEditModal(id) {
   if (!evt) return;
   editingId = id;
   editingDay = evt.day;
+  var parts = evt.time.split(':');
+  selectedHour = parts[0];
+  selectedMinute = parts[1] || '00';
   selectedTime = evt.time;
   document.getElementById('editModalTitle').textContent = '일정 수정';
   buildDayPick(editingDay);
   buildTimeGrid();
-  var match = document.querySelector('.time-slot[data-time="' + evt.time + '"]');
+  var match = document.querySelector('.time-slot[data-hour="' + selectedHour + '"]');
   if (match) match.classList.add('selected');
+  resetMinuteToggle(selectedMinute);
   document.getElementById('editActivity').value = evt.activity;
   buildCategorySelect(evt.category || '');
   var mapInput = document.getElementById('editMapUrl');
