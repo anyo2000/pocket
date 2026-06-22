@@ -13,25 +13,15 @@
   html,body{height:100%}
   body{font-family:"맑은 고딕","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
     background:radial-gradient(135% 95% at 50% -8%,#FDFAF4,#EEE3D1);color:var(--ink);-webkit-font-smoothing:antialiased;}
-  .app{max-width:880px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:12px 16px 16px}
+  .app{max-width:480px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;padding:8px 12px 10px;overflow:hidden}
 
-  /* 세로일 때 가로 안내 */
-  #rotate{display:none}
-  @media (orientation:portrait) and (max-width:820px){
-    .app{display:none}
-    #rotate{display:flex;position:fixed;inset:0;flex-direction:column;align-items:center;justify-content:center;
-      text-align:center;color:var(--navy);gap:14px;padding:30px}
-    #rotate .ro{font-size:60px;animation:rot 1.6s ease-in-out infinite}
-    #rotate p{font-size:18px;font-weight:800;line-height:1.5}
-  }
-  @keyframes rot{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}
-
-  .screen{display:none;flex:1;flex-direction:column}
+  .screen{display:none;flex:1;flex-direction:column;min-height:0;overflow-y:auto}
+  #match{overflow:hidden}
   .screen.on{display:flex;animation:fade .3s ease}
   @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   @keyframes pop{0%{transform:scale(1)}50%{transform:scale(.96)}100%{transform:scale(1)}}
-  @keyframes slideL{from{transform:translateX(-44px);opacity:0}to{transform:translateX(0);opacity:1}}
-  @keyframes slideR{from{transform:translateX(44px);opacity:0}to{transform:translateX(0);opacity:1}}
+  @keyframes slideD{from{transform:translateY(-30px);opacity:0}to{transform:translateY(0);opacity:1}}
+  @keyframes slideU{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
 
   .btn{cursor:pointer;border:none;font-family:inherit;font-weight:800;border-radius:14px;transition:.12s}
   .btn-cta{background:var(--maroon);color:#fff;font-size:20px;padding:17px;box-shadow:0 8px 20px rgba(162,59,45,.32);width:100%}
@@ -52,63 +42,56 @@
   .demo-pick button.sel{background:var(--navy);color:#fff;border-color:var(--navy);box-shadow:0 6px 16px rgba(44,60,92,.28)}
   .demo-pick button:active{transform:scale(.97)}
 
-  /* 매치 헤더 */
-  .mhead{text-align:center;margin-bottom:8px}
-  .msub{font-size:18px;font-weight:700;color:var(--navy)}
-  .round{font-weight:900;font-size:22px;letter-spacing:1px;color:var(--maroon)}
+  /* 매치 헤더 (컴팩트) */
+  .mhead{text-align:center;margin-bottom:5px;flex:0 0 auto}
+  .round{font-weight:900;font-size:19px;letter-spacing:1px;color:var(--maroon)}
+  .msub{margin-top:2px;font-size:15px;font-weight:700;color:var(--navy)}
   .demo-chip{font-size:12.5px;font-weight:800;color:var(--navy);background:#fff;border:1.5px solid var(--line);
-    border-radius:999px;padding:6px 13px;white-space:nowrap;box-shadow:0 3px 8px rgba(60,45,30,.1)}
-  .dots{margin-top:8px;display:flex;gap:7px;justify-content:center}
-  .dots i{width:24px;height:5px;border-radius:3px;background:#E0D6C5}
+    border-radius:999px;padding:9px 13px;white-space:nowrap;box-shadow:0 3px 8px rgba(60,45,30,.1)}
+  .dots{margin-top:5px;display:flex;gap:6px;justify-content:center}
+  .dots i{width:20px;height:4px;border-radius:3px;background:#E0D6C5}
   .dots i.done{background:var(--maroon)} .dots i.cur{background:var(--navy)}
 
-  /* 매치: 좌/우 카드 + 가운데 VS·보험료버튼 */
-  .arena{flex:1;display:flex;flex-direction:row;align-items:stretch;justify-content:center;gap:12px}
-  .arena > #slotA,.arena > #slotB{flex:1 1 0;min-width:0;display:flex}
-  .card{flex:1 1 0;min-width:0;display:flex;flex-direction:column;background:#fff;border-radius:22px;cursor:pointer;
-    padding:20px 20px 18px;box-shadow:0 10px 30px rgba(60,45,30,.13);transition:transform .12s,box-shadow .12s}
+  /* 매치: 위/아래 카드 + 가운데 가로 띠 (세로 풀스크린, 스크롤 0) */
+  .arena{flex:1;display:flex;flex-direction:column;gap:6px;min-height:0}
+  .arena > #slotA,.arena > #slotB{flex:1 1 0;min-height:0;display:flex}
+  .card{flex:1 1 0;min-width:0;min-height:0;display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;background:#fff;border-radius:18px;cursor:pointer;overflow:hidden;
+    padding:clamp(8px,1.6vh,16px) 16px;box-shadow:0 6px 18px rgba(60,45,30,.12);transition:transform .12s}
   .card:active{transform:scale(.99)}
-  .card.sideA{animation:slideL .42s cubic-bezier(.2,.75,.3,1)}
-  .card.sideB{animation:slideR .42s cubic-bezier(.2,.75,.3,1)}
+  .card.sideA{animation:slideD .4s cubic-bezier(.2,.75,.3,1)}
+  .card.sideB{animation:slideU .4s cubic-bezier(.2,.75,.3,1)}
   .card.flash{animation:pop .25s}
-  .taphint{margin-top:14px;text-align:center;font-size:13px;font-weight:700;color:#b9b1a1}
-  .cicon{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center}
-  .cicon svg{width:28px;height:28px}
+  .cicon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .cicon svg{width:24px;height:24px}
   .card.sideA .cicon{background:#F7E7E3;color:var(--maroon)}
   .card.sideB .cicon{background:#E7EBF3;color:var(--navy)}
-  .ctag{margin-top:14px;font-size:16px;font-weight:700}
-  .cov{font-size:28px;font-weight:800;line-height:1.2;word-break:keep-all;margin-top:2px}
+  .ctag{margin-top:6px;font-size:13px;font-weight:700}
+  .cov{font-size:clamp(19px,5.4vw,24px);font-weight:800;line-height:1.15;word-break:keep-all;margin-top:1px}
   .card.sideA .ctag,.card.sideA .cov{color:var(--maroon)}
   .card.sideB .ctag,.card.sideB .cov{color:var(--navy)}
-  .cdesc{margin-top:10px;font-size:15.5px;color:#6b6457;line-height:1.5;word-break:keep-all}
-  .enroll{margin-top:13px;font-size:14.5px;color:#6b6457;line-height:1.5;word-break:keep-all}
-  .enroll b{font-weight:800;margin-right:7px}
-  .card.sideA .enroll b{color:var(--maroon)} .card.sideB .enroll b{color:var(--navy)}
-  /* 보상예시 — 라벨+큰금액+한줄 (양쪽 동일 구조로 정렬) */
-  .pay{margin-top:auto;text-align:center;background:#FBF8F2;border:1px solid #EFE9DC;border-radius:16px;padding:14px 12px}
-  .pay-label{font-size:13.5px;font-weight:700;color:var(--gray)}
-  .pay-big{font-size:38px;font-weight:800;letter-spacing:-1.2px;line-height:1.05;margin-top:1px}
-  .pay-big .won{font-size:.4em;font-weight:800;margin-left:3px;letter-spacing:0}
+  .cdesc{margin-top:5px;font-size:12.5px;color:#6b6457;line-height:1.35;word-break:keep-all}
+  /* 보상예시: 라벨+큰금액 한 줄 + 세부 한 줄 */
+  .pay{margin-top:9px;display:flex;align-items:baseline;justify-content:center;gap:8px}
+  .pay-label{font-size:13px;font-weight:700;color:var(--gray)}
+  .pay-big{font-size:clamp(24px,7vw,32px);font-weight:800;letter-spacing:-1px;line-height:1}
+  .pay-big .won{font-size:.4em;font-weight:800;margin-left:2px}
   .card.sideA .pay-big{color:var(--maroon)} .card.sideB .pay-big{color:var(--navy)}
-  .pay-detail{font-size:12.5px;color:#9a937f;margin-top:8px;line-height:1.45;word-break:keep-all}
-
-  .fee-open{display:none;margin-top:12px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+  .pay-detail{margin-top:5px;font-size:11.5px;color:#9a937f;line-height:1.35;word-break:keep-all}
+  .enroll{margin-top:7px;font-size:12.5px;color:#857f70;line-height:1.35;word-break:keep-all}
+  .enroll b{font-weight:800;margin-right:5px}
+  .card.sideA .enroll b{color:var(--maroon)} .card.sideB .enroll b{color:var(--navy)}
+  .fee-open{display:none;margin-top:7px}
   .fee-open.show{display:block;animation:fade .2s}
-  .fee-open .fbasis{font-size:12.5px;color:var(--gray);margin-bottom:4px}
-  .fee-open .amt{font-size:25px;font-weight:800;color:var(--ink)}
+  .fee-open .amt{font-size:18px;font-weight:800;color:var(--ink)}
 
-  .pick{padding-top:14px}
-  .pick button{width:100%;background:linear-gradient(135deg,#56678D,#3F4F6E);color:#fff;font-weight:800;font-size:20px;border:none;
-    border-radius:16px;padding:16px;cursor:pointer;font-family:inherit;box-shadow:0 7px 18px rgba(44,60,92,.28)}
-  .pick button:active{transform:scale(.98)}
-
-  /* 가운데 VS + 공용 보험료 버튼 */
-  .center{flex:0 0 auto;align-self:center;display:flex;flex-direction:column;align-items:center;gap:13px;z-index:3}
-  .vs{color:var(--navy);font-weight:900;font-style:italic;font-size:26px;background:#fff;border:1px solid #EFE6D6;
-    width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    box-shadow:0 8px 22px rgba(60,45,30,.2)}
-  .fee-all{background:var(--navy);color:#fff;font-weight:800;font-size:14px;border:none;border-radius:999px;
-    padding:12px 16px;cursor:pointer;font-family:inherit;white-space:nowrap;box-shadow:0 5px 14px rgba(44,60,92,.3)}
+  /* 가운데 가로 띠: 💰보험료 · VS · 나이칩 */
+  .center{flex:0 0 auto;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;z-index:3}
+  .vs{color:var(--navy);font-weight:900;font-style:italic;font-size:18px;background:#fff;border:1px solid #EFE6D6;
+    width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+    box-shadow:0 5px 16px rgba(60,45,30,.2)}
+  .fee-all{background:var(--navy);color:#fff;font-weight:800;font-size:13.5px;border:none;border-radius:999px;
+    padding:11px 15px;cursor:pointer;font-family:inherit;white-space:nowrap;box-shadow:0 5px 14px rgba(44,60,92,.3)}
   .fee-all:active{transform:scale(.96)}
 
   @keyframes burst{0%{transform:scale(1)}40%{transform:scale(1.5);background:var(--gold);color:#fff}100%{transform:scale(1)}}
@@ -159,7 +142,6 @@
 </style>
 </head>
 <body>
-<div id="rotate"><div class="ro">📱</div><p>가로로 돌려주세요</p></div>
 <div class="app">
 
   <!-- 인트로 -->
@@ -181,15 +163,15 @@
   <!-- 매치 -->
   <section id="match" class="screen">
     <div class="mhead">
+      <div class="round" id="round">8강</div>
       <div class="msub" id="msub"></div>
       <div class="dots" id="dots"></div>
     </div>
     <div class="arena">
       <div id="slotA"></div>
       <div class="center">
-        <div class="round" id="round">8강</div>
-        <div class="vs">VS</div>
         <button class="fee-all" id="feeAllBtn" onclick="toggleFeeAll()">💰 보험료 보기</button>
+        <div class="vs">VS</div>
         <div class="demo-chip" id="demoChip"></div>
       </div>
       <div id="slotB"></div>
@@ -362,10 +344,8 @@ function cardHTML(id,side){
     <div class="enroll"><b>가입</b>${c.enroll}</div>
     ${renderPay(id)}
     <div class="fee-open" id="fee_${side}">
-      <div class="fbasis">${DEMO[demo]} · 가입 1천만 예상 월 보험료</div>
       <div class="amt">월 ${FEE[id][demo]}원</div>
     </div>
-    <div class="taphint">👆 카드를 누르면 선택</div>
   </div>`;
 }
 function toggleFeeAll(){
