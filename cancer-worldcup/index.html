@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>암보장 챔피언십</title>
+<style>
+  :root{
+    --maroon:#A23B2D; --navy:#2C3D5C; --slate:#4E5E7E;
+    --ink:#2E3440; --gray:#8C8576; --line:#E7DFD2; --box:#ECE6DC; --gold:#D99A2B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{font-family:"맑은 고딕","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+    background:radial-gradient(135% 95% at 50% -8%,#FDFAF4,#EEE3D1);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  .app{max-width:880px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:12px 16px 16px}
+
+  /* 세로일 때 가로 안내 */
+  #rotate{display:none}
+  @media (orientation:portrait) and (max-width:820px){
+    .app{display:none}
+    #rotate{display:flex;position:fixed;inset:0;flex-direction:column;align-items:center;justify-content:center;
+      text-align:center;color:var(--navy);gap:14px;padding:30px}
+    #rotate .ro{font-size:60px;animation:rot 1.6s ease-in-out infinite}
+    #rotate p{font-size:18px;font-weight:800;line-height:1.5}
+  }
+  @keyframes rot{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}
+
+  .screen{display:none;flex:1;flex-direction:column}
+  .screen.on{display:flex;animation:fade .3s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes pop{0%{transform:scale(1)}50%{transform:scale(.96)}100%{transform:scale(1)}}
+  @keyframes slideL{from{transform:translateX(-44px);opacity:0}to{transform:translateX(0);opacity:1}}
+  @keyframes slideR{from{transform:translateX(44px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+  .btn{cursor:pointer;border:none;font-family:inherit;font-weight:800;border-radius:14px;transition:.12s}
+  .btn-cta{background:var(--maroon);color:#fff;font-size:20px;padding:17px;box-shadow:0 8px 20px rgba(162,59,45,.32);width:100%}
+  .btn-cta:active{transform:scale(.97)}
+  .btn-ghost{background:#fff;color:var(--navy);font-size:16px;padding:14px;border:1.5px solid var(--line);width:100%}
+
+  /* 인트로 */
+  #intro{justify-content:center;align-items:center;text-align:center;gap:14px}
+  .emoji{font-size:56px}
+  #intro h1{font-size:34px;font-weight:800;letter-spacing:-.5px;color:var(--maroon)}
+  #intro .sub{color:#6b6457;font-size:16px;line-height:1.6}
+  #intro .start-wrap{width:100%;max-width:380px;margin-top:8px}
+  #intro .basis{color:var(--gray);font-size:12.5px;margin-top:10px}
+  .pick-label{font-size:14px;font-weight:700;color:var(--navy);margin-top:4px}
+  .demo-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:380px}
+  .demo-pick button{font-family:inherit;font-weight:800;font-size:16px;padding:14px;border-radius:13px;
+    border:1.5px solid var(--line);background:#fff;color:var(--navy);cursor:pointer;transition:.12s}
+  .demo-pick button.sel{background:var(--navy);color:#fff;border-color:var(--navy);box-shadow:0 6px 16px rgba(44,60,92,.28)}
+  .demo-pick button:active{transform:scale(.97)}
+
+  /* 매치 헤더 */
+  .mhead{text-align:center;margin-bottom:8px}
+  .msub{font-size:18px;font-weight:700;color:var(--navy)}
+  .round{font-weight:900;font-size:22px;letter-spacing:1px;color:var(--maroon)}
+  .demo-chip{font-size:12.5px;font-weight:800;color:var(--navy);background:#fff;border:1.5px solid var(--line);
+    border-radius:999px;padding:6px 13px;white-space:nowrap;box-shadow:0 3px 8px rgba(60,45,30,.1)}
+  .dots{margin-top:8px;display:flex;gap:7px;justify-content:center}
+  .dots i{width:24px;height:5px;border-radius:3px;background:#E0D6C5}
+  .dots i.done{background:var(--maroon)} .dots i.cur{background:var(--navy)}
+
+  /* 매치: 좌/우 카드 + 가운데 VS·보험료버튼 */
+  .arena{flex:1;display:flex;flex-direction:row;align-items:stretch;justify-content:center;gap:12px}
+  .arena > #slotA,.arena > #slotB{flex:1 1 0;min-width:0;display:flex}
+  .card{flex:1 1 0;min-width:0;display:flex;flex-direction:column;background:#fff;border-radius:22px;cursor:pointer;
+    padding:20px 20px 18px;box-shadow:0 10px 30px rgba(60,45,30,.13);transition:transform .12s,box-shadow .12s}
+  .card:active{transform:scale(.99)}
+  .card.sideA{animation:slideL .42s cubic-bezier(.2,.75,.3,1)}
+  .card.sideB{animation:slideR .42s cubic-bezier(.2,.75,.3,1)}
+  .card.flash{animation:pop .25s}
+  .taphint{margin-top:14px;text-align:center;font-size:13px;font-weight:700;color:#b9b1a1}
+  .cicon{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center}
+  .cicon svg{width:28px;height:28px}
+  .card.sideA .cicon{background:#F7E7E3;color:var(--maroon)}
+  .card.sideB .cicon{background:#E7EBF3;color:var(--navy)}
+  .ctag{margin-top:14px;font-size:16px;font-weight:700}
+  .cov{font-size:28px;font-weight:800;line-height:1.2;word-break:keep-all;margin-top:2px}
+  .card.sideA .ctag,.card.sideA .cov{color:var(--maroon)}
+  .card.sideB .ctag,.card.sideB .cov{color:var(--navy)}
+  .cdesc{margin-top:10px;font-size:15.5px;color:#6b6457;line-height:1.5;word-break:keep-all}
+  .enroll{margin-top:13px;font-size:14.5px;color:#6b6457;line-height:1.5;word-break:keep-all}
+  .enroll b{font-weight:800;margin-right:7px}
+  .card.sideA .enroll b{color:var(--maroon)} .card.sideB .enroll b{color:var(--navy)}
+  /* 보상예시 — 라벨+큰금액+한줄 (양쪽 동일 구조로 정렬) */
+  .pay{margin-top:auto;text-align:center;background:#FBF8F2;border:1px solid #EFE9DC;border-radius:16px;padding:14px 12px}
+  .pay-label{font-size:13.5px;font-weight:700;color:var(--gray)}
+  .pay-big{font-size:38px;font-weight:800;letter-spacing:-1.2px;line-height:1.05;margin-top:1px}
+  .pay-big .won{font-size:.4em;font-weight:800;margin-left:3px;letter-spacing:0}
+  .card.sideA .pay-big{color:var(--maroon)} .card.sideB .pay-big{color:var(--navy)}
+  .pay-detail{font-size:12.5px;color:#9a937f;margin-top:8px;line-height:1.45;word-break:keep-all}
+
+  .fee-open{display:none;margin-top:12px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+  .fee-open.show{display:block;animation:fade .2s}
+  .fee-open .fbasis{font-size:12.5px;color:var(--gray);margin-bottom:4px}
+  .fee-open .amt{font-size:25px;font-weight:800;color:var(--ink)}
+
+  .pick{padding-top:14px}
+  .pick button{width:100%;background:linear-gradient(135deg,#56678D,#3F4F6E);color:#fff;font-weight:800;font-size:20px;border:none;
+    border-radius:16px;padding:16px;cursor:pointer;font-family:inherit;box-shadow:0 7px 18px rgba(44,60,92,.28)}
+  .pick button:active{transform:scale(.98)}
+
+  /* 가운데 VS + 공용 보험료 버튼 */
+  .center{flex:0 0 auto;align-self:center;display:flex;flex-direction:column;align-items:center;gap:13px;z-index:3}
+  .vs{color:var(--navy);font-weight:900;font-style:italic;font-size:26px;background:#fff;border:1px solid #EFE6D6;
+    width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 8px 22px rgba(60,45,30,.2)}
+  .fee-all{background:var(--navy);color:#fff;font-weight:800;font-size:14px;border:none;border-radius:999px;
+    padding:12px 16px;cursor:pointer;font-family:inherit;white-space:nowrap;box-shadow:0 5px 14px rgba(44,60,92,.3)}
+  .fee-all:active{transform:scale(.96)}
+
+  @keyframes burst{0%{transform:scale(1)}40%{transform:scale(1.5);background:var(--gold);color:#fff}100%{transform:scale(1)}}
+  .vs.burst{animation:burst .5s}
+
+  /* 승부 연출 */
+  .card.winner{position:relative;box-shadow:0 0 0 3px var(--gold),0 12px 30px rgba(217,154,43,.4);transform:scale(1.03);transition:.3s;z-index:3}
+  .card.winner::after{content:'WIN';position:absolute;top:-13px;right:18px;background:var(--gold);color:#3a2a00;
+    font-weight:900;font-size:14px;padding:5px 14px;border-radius:999px;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .card.loser{opacity:.4;filter:grayscale(.6);transform:scale(.92);transition:.3s}
+  #banner{position:fixed;top:15%;left:0;right:0;display:none;flex-direction:column;align-items:center;z-index:40;pointer-events:none}
+  #banner.on{display:flex}
+  #banner .toast{background:rgba(44,60,92,.96);padding:17px 30px;border-radius:18px;box-shadow:0 12px 34px rgba(0,0,0,.4);text-align:center;animation:popbig .4s}
+  #banner .bn-name{font-size:27px;font-weight:900;color:#fff;word-break:keep-all;line-height:1.25}
+  #banner .bn-adv{margin-top:7px;font-size:23px;font-weight:900;color:var(--gold)}
+  @keyframes popbig{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+
+  /* 엔딩 */
+  .ehead{text-align:center;margin-bottom:16px}
+  .ehead .crown{font-size:44px}
+  .ehead h2{font-size:26px;font-weight:800;margin-top:2px;color:var(--navy)}
+  .ehead p{color:#6b6457;font-size:14px;margin-top:5px}
+  .rank{background:#fff;border-radius:17px;padding:16px;margin-bottom:12px;display:flex;gap:13px;align-items:flex-start;box-shadow:0 8px 22px rgba(60,45,30,.13)}
+  .rank.r1{outline:3px solid var(--gold)}
+  .rank .medal{font-size:34px;flex:0 0 auto}
+  .rank .rb{flex:1;min-width:0}
+  .rank .rn{font-size:21px;font-weight:800;color:var(--navy);word-break:keep-all}
+  .rank .rlabel{font-size:13px;font-weight:800;color:var(--maroon);margin-right:6px}
+  .rank .rmerit{font-size:15.5px;color:#5a5346;margin-top:6px;line-height:1.45;word-break:keep-all}
+  .rank .rc{margin-top:9px;display:flex;flex-wrap:wrap;gap:7px}
+  .chip{font-size:13px;background:var(--box);border-radius:9px;padding:6px 10px;color:#3a4654}
+  .chip b{color:var(--navy)} .chip.pay b{color:var(--maroon)}
+  .note-box{background:#fff;border-left:5px solid var(--maroon);border-radius:12px;padding:13px 15px;margin:4px 0 18px;font-size:13.5px;line-height:1.6;color:#5a5346}
+  .note-box b{color:var(--maroon)}
+  .eactions{display:flex;flex-direction:column;gap:10px;max-width:420px;margin:0 auto;width:100%}
+
+  /* 부록 */
+  .ahead{text-align:center;margin-bottom:13px}
+  .ahead h2{font-size:23px;font-weight:800;color:var(--navy)}
+  .ahead p{color:#6b6457;font-size:13px;margin-top:4px}
+  .acard{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 6px 16px rgba(60,45,30,.1)}
+  .acard .atag{font-size:13px;font-weight:700;color:var(--maroon)}
+  .acard .an{font-size:18px;font-weight:800;color:var(--navy);margin-top:1px}
+  .acard .arows{margin-top:9px;display:grid;gap:6px;font-size:14px;color:#3a4654}
+  .acard .arows span b{color:var(--gray);font-weight:700;margin-right:8px}
+  .acard .arows .pay2{color:var(--maroon);font-weight:700}
+  .foot{color:var(--gray);font-size:11.5px;text-align:center;margin-top:13px;line-height:1.6}
+</style>
+</head>
+<body>
+<div id="rotate"><div class="ro">📱</div><p>가로로 돌려주세요</p></div>
+<div class="app">
+
+  <!-- 인트로 -->
+  <section id="intro" class="screen on">
+    <div class="emoji">🎗️🏆</div>
+    <h1>암보장 챔피언십</h1>
+    <p class="sub">끌리는 보장을 누르면 끝.<br>내 1순위 암보장을 찾아드려요.</p>
+    <div class="pick-label">나이·성별 선택</div>
+    <div class="demo-pick" id="demoPick">
+      <button data-d="30남" onclick="setDemo('30남')">30대 남</button>
+      <button data-d="30여" onclick="setDemo('30여')">30대 여</button>
+      <button data-d="50남" onclick="setDemo('50남')">50대 남</button>
+      <button data-d="50여" onclick="setDemo('50여')">50대 여</button>
+    </div>
+    <div class="start-wrap"><button class="btn btn-cta" onclick="start()">시작하기</button></div>
+    <p class="basis">보험료 = 선택한 나이·성별 · 가입 1천만 기준 (한아름더건강한종합 2604)</p>
+  </section>
+
+  <!-- 매치 -->
+  <section id="match" class="screen">
+    <div class="mhead">
+      <div class="msub" id="msub"></div>
+      <div class="dots" id="dots"></div>
+    </div>
+    <div class="arena">
+      <div id="slotA"></div>
+      <div class="center">
+        <div class="round" id="round">8강</div>
+        <div class="vs">VS</div>
+        <button class="fee-all" id="feeAllBtn" onclick="toggleFeeAll()">💰 보험료 보기</button>
+        <div class="demo-chip" id="demoChip"></div>
+      </div>
+      <div id="slotB"></div>
+    </div>
+  </section>
+
+  <!-- 엔딩 -->
+  <section id="ending" class="screen">
+    <div class="ehead">
+      <div class="crown">👑</div>
+      <h2>내가 고른 최고의 암보장</h2>
+      <p>토너먼트 결과예요</p>
+    </div>
+    <div id="ranks"></div>
+    <div class="note-box">이 결과는 갈아타라는 뜻이 아니라, 지금 보장에서 <b>무엇부터 채울지</b> 우선순위를 보는 용도예요.</div>
+    <div class="eactions">
+      <button class="btn btn-cta" onclick="restart()">다시하기</button>
+      <button class="btn btn-ghost" onclick="show('appendix')">8개 담보 전체 보기</button>
+    </div>
+    <p class="foot">보험료=남50·가입1천만(암진단및치료비는 결합 5천만형) · 출처: 0622신담보 담보카드 약관검증본</p>
+  </section>
+
+  <!-- 부록 -->
+  <section id="appendix" class="screen">
+    <div class="ahead"><h2>8개 담보 전체</h2><p>한줄 · 가입 · 보상예시 · 보험료</p></div>
+    <div id="aList"></div>
+    <div style="margin-top:6px;max-width:420px;margin:6px auto 0;width:100%"><button class="btn btn-ghost" onclick="show(lastScreen)">돌아가기</button></div>
+    <p class="foot">⚠ 표시 = 본사 보험료 미수령 / 약관 확인 필요 · 통합암·일부 캡 표기는 정리본 기준</p>
+  </section>
+
+</div>
+
+<div id="banner"><div class="toast"><div class="bn-name"></div><div class="bn-adv"></div></div></div>
+
+<script>
+/* ===== 별명 / 라인아이콘 ===== */
+const _S='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">';
+const ICON={
+  diag:_S+'<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M5.5 9.5h.01M18.5 14.5h.01"/></svg>',
+  dx:_S+'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M12 11v5M9.5 13.5h5"/></svg>',
+  surg:_S+'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
+  spec:_S+'<path d="M12 3 3 7.5 12 12l9-4.5L12 3z"/><path d="M3 12l9 4.5L21 12M3 16.5 12 21l9-4.5"/></svg>',
+  targ:_S+'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>',
+  acc:_S+'<path d="M17 2.5 21 6.5l-4 4"/><path d="M3 11.5v-1a4 4 0 0 1 4-4h14"/><path d="M7 21.5 3 17.5l4-4"/><path d="M21 12.5v1a4 4 0 0 1-4 4H3"/></svg>',
+  spcl:_S+'<path d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3z"/></svg>',
+  rad:_S+'<path d="M3 12h4l2-6 4 12 2-6h6"/></svg>',
+};
+
+/* ===== 담보 데이터 (차장님 확정 2026-06-22) ===== */
+const C={
+  diag:{name:'암진단비', tag:'든든한 목돈',
+    desc:'진단받는 즉시 활용이 가능합니다',
+    enroll:'암진단 1천', benefit:'암진단시 1천 후 소멸',
+    fee:'31,250원'},
+  dx:{name:'암진단및치료비', tag:'진단비＋특정항암치료',
+    desc:'암진단비에 몇천원 추가하면 최고 1억 보장',
+    enroll:'암진단비 1천 + 항암복합치료비 5천 선택',
+    benefit:'암진단시 1천<br>표적치료시 +2천<br>양성자치료시 +3천<br><b>→ 총 6천</b>',
+    fee:'35,961원'},
+  surg:{name:'암수술비(연간1회한)', tag:'수술비 집중',
+    desc:'암 수술 받을 때마다 정액 보장',
+    enroll:'암수술비 1천 (연간1회한)', benefit:'암 수술시 1천',
+    feeUnknown:true},
+  spec:{name:'암특정치료비', tag:'다양한 치료방법 폭넓게 보장',
+    desc:'수술·방사선·약물·중환자실·호스피스 각 연1회',
+    enroll:'암특정치료비 1천 (종합병원)',
+    benefit:'1종 1천 → 2종 2천 → 3종 3천<br><b>→ 연 최고 4.5천</b>',
+    fee:'83,575원'},
+  targ:{name:'표적항암약물치료비(연간1회한)', tag:'비싼 표적항암치료 집중보장',
+    desc:'비싼 비급여 표적항암 치료비 연 1회 보장',
+    enroll:'표적항암약물치료비 1천 (연간1회한)', benefit:'표적항암약물치료시 1천',
+    feeUnknown:true},
+  acc:{name:'암복합치료생활비', tag:'반복치료 대응',
+    desc:'치료가 반복될수록 누적해서 최고 300%',
+    enroll:'암복합치료생활비 1천 (상급종합)<br>1회한 + 2~4회한 세트가입',
+    benefit:'1회 1천 → 2회 2천 → 3회 2.5천 → 4회 3천',
+    fee:'27,660원'},
+  spcl:{name:'암특정치료생활비', tag:'진단금은 있는데 복합치료 받으려면',
+    desc:'병원 제한 없이 복합치료를 저렴하게',
+    enroll:'암특정치료생활비 1천 (병원 무관)',
+    benefit:'<span class="seg-g">1회 X</span> → 2회 1천 → 3회 1.5천 → <span class="seg-g">4회 1.5천</span>',
+    fee:'13,810원'},
+  rad:{name:'항암방사선약물치료비(연간1회한,급여)', tag:'급여 방사선·약물 집중보장',
+    desc:'급여 항암 방사선 또는 급여 약물 치료시 보장',
+    enroll:'항암방사선약물치료비 1천', benefit:'항암 방사선 치료시 1천 (추가 약물치료시 보장 X)',
+    feeUnknown:true},
+};
+
+/* ===== 보험료 (4종 · 가입제안서 2026-06-22 · 단위 원 · 1천만 기준) ===== */
+const DEMO={'30남':'30대 남','30여':'30대 여','50남':'50대 남','50여':'50대 여'};
+let demo='30남';
+const FEE={
+  diag:{'30남':'12,800','30여':'10,600','50남':'23,620','50여':'15,070'},
+  dx:  {'30남':'14,855','30여':'13,184','50남':'27,474','50여':'17,862'},
+  surg:{'30남':'15,700','30여':'11,500','50남':'28,400','50여':'14,800'},
+  spec:{'30남':'29,350','30여':'25,075','50남':'53,955','50여':'32,895'},
+  targ:{'30남':'20,500','30여':'20,300','50남':'36,500','50여':'30,200'},
+  acc: {'30남':'12,840','30여':'14,570','50남':'23,220','50여':'17,860'},
+  spcl:{'30남':'6,210','30여':'7,230','50남':'11,520','50여':'8,370'},
+  rad: {'30남':'57,160','30여':'39,760','50남':'108,780','50여':'58,980'},
+};
+function setDemo(d){demo=d;document.querySelectorAll('#demoPick button').forEach(b=>b.classList.toggle('sel',b.dataset.d===d));}
+
+/* ===== 보상예시 (구조화 — 값은 검증본 그대로, 표현만 개선) ===== */
+const PAY={
+  diag:{label:'암 진단 시',   big:'1,000', detail:'진단 시 1회 정액'},
+  dx:  {label:'최대',        big:'6,000', detail:'진단 1,000만 · 표적 +2,000만 · 양성자 +3,000만'},
+  surg:{label:'암 수술 시',   big:'1,000', detail:'수술 받을 때마다 정액'},
+  spec:{label:'연 최고',     big:'4,500', detail:'1종 1,000만 · 2종 2,000만 · 3종 3,000만'},
+  targ:{label:'표적치료 시',  big:'1,000', detail:'연 1회 정액'},
+  acc: {label:'최대',        big:'3,000', detail:'1회 1,000만 · 2회 2,000만 · 3회 2,500만 · 4회 3,000만'},
+  spcl:{label:'최대',        big:'1,500', detail:'1회 없음 · 2회 1,000만 · 3·4회 1,500만'},
+  rad: {label:'방사선 치료 시',big:'1,000', detail:'추가 약물치료는 보장 X'},
+};
+function renderPay(id){
+  const p=PAY[id];
+  return `<div class="pay">
+    <div class="pay-label">${p.label}</div>
+    <div class="pay-big">${p.big}<span class="won">만원</span></div>
+    <div class="pay-detail">${p.detail}</div>
+  </div>`;
+}
+
+/* ===== 장점 한 줄 (엔딩용) ===== */
+const MERIT={
+  diag:'진단 시 목돈을 한 번에 받는 가장 기본 보장',
+  dx:'진단금에 양성자·표적 비급여 치료까지 한 담보로',
+  surg:'암 수술 비용을 정액으로 직접 보장',
+  spec:'5가지 주요 치료를 종합병원에서 폭넓게',
+  targ:'고가 비급여 표적항암 치료비를 정액 보장',
+  acc:'치료가 반복될수록 누적해 최고 300%',
+  spcl:'병원 제한 없이 복합치료를 저렴하게 보강',
+  rad:'급여 항암 방사선·약물 치료비를 정액 보장',
+};
+
+/* ===== 브래킷 (7경기, 1·2위만) ===== */
+const SCHED=[
+  {key:'r1_0',round:'8강',sub:'더 끌리는 보장은?',a:'diag',b:'dx'},
+  {key:'r1_1',round:'8강',sub:'더 끌리는 보장은?',a:'surg',b:'spec'},
+  {key:'r1_2',round:'8강',sub:'더 끌리는 보장은?',a:'targ',b:'acc'},
+  {key:'r1_3',round:'8강',sub:'더 끌리는 보장은?',a:'spcl',b:'rad'},
+  {key:'semi_0',round:'4강',sub:'더 중요한 보장은?'},
+  {key:'semi_1',round:'4강',sub:'더 중요한 보장은?'},
+  {key:'final',round:'결승',sub:'내 1순위 암보장은?'},
+];
+let cursor=0; const res={}; let lastScreen='ending';
+function resolve(m){
+  if(m.key==='semi_0'){m.a=res.r1_0.winner;m.b=res.r1_1.winner;}
+  else if(m.key==='semi_1'){m.a=res.r1_2.winner;m.b=res.r1_3.winner;}
+  else if(m.key==='final'){m.a=res.semi_0.winner;m.b=res.semi_1.winner;}
+  return m;
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  if(id!=='appendix') lastScreen=id;
+  window.scrollTo(0,0);
+}
+function start(){cursor=0;for(const k in res)delete res[k];renderMatch();show('match');}
+function restart(){start();}
+
+function cardHTML(id,side){
+  const c=C[id];
+  return `<div class="card side${side}" id="card_${side}" onclick="pick('${side}')">
+    <div class="cicon">${ICON[id]}</div>
+    <div class="ctag">${c.tag}</div>
+    <div class="cov">${c.name}</div>
+    <div class="cdesc">${c.desc}</div>
+    <div class="enroll"><b>가입</b>${c.enroll}</div>
+    ${renderPay(id)}
+    <div class="fee-open" id="fee_${side}">
+      <div class="fbasis">${DEMO[demo]} · 가입 1천만 예상 월 보험료</div>
+      <div class="amt">월 ${FEE[id][demo]}원</div>
+    </div>
+    <div class="taphint">👆 카드를 누르면 선택</div>
+  </div>`;
+}
+function toggleFeeAll(){
+  feeShown=!feeShown;
+  const a=document.getElementById('fee_A'), b=document.getElementById('fee_B');
+  if(a)a.classList.toggle('show',feeShown);
+  if(b)b.classList.toggle('show',feeShown);
+  const btn=document.getElementById('feeAllBtn');
+  if(btn)btn.textContent=feeShown?'💰 보험료 닫기':'💰 보험료 보기';
+}
+
+function renderMatch(){
+  const m=resolve(SCHED[cursor]);
+  document.getElementById('round').textContent=m.round;
+  document.getElementById('msub').textContent=m.sub;
+  document.getElementById('demoChip').textContent=DEMO[demo];
+  let d='';for(let i=0;i<SCHED.length;i++)d+=`<i class="${i<cursor?'done':(i===cursor?'cur':'')}"></i>`;
+  document.getElementById('dots').innerHTML=d;
+  document.getElementById('slotA').innerHTML=cardHTML(m.a,'A');
+  document.getElementById('slotB').innerHTML=cardHTML(m.b,'B');
+  feeShown=false;
+  const fb=document.getElementById('feeAllBtn'); if(fb)fb.textContent='💰 보험료 보기';
+}
+let busy=false, feeShown=false;
+function pick(side){
+  if(busy)return;busy=true;
+  const m=SCHED[cursor];
+  const win=side==='A'?m.a:m.b, lose=side==='A'?m.b:m.a;
+  res[m.key]={winner:win,loser:lose};
+  const winCard=document.getElementById('card_'+side);
+  const loseCard=document.getElementById('card_'+(side==='A'?'B':'A'));
+  if(winCard)winCard.classList.add('winner');
+  if(loseCard)loseCard.classList.add('loser');
+  const vs=document.querySelector('.vs'); if(vs)vs.classList.add('burst');
+  if(navigator.vibrate)navigator.vibrate(60);
+  const adv = m.key.startsWith('r1')?'4강 진출!':(m.key.startsWith('semi')?'결승 진출!':'🏆 우승!');
+  const banner=document.getElementById('banner');
+  banner.querySelector('.bn-name').textContent=C[win].name;
+  banner.querySelector('.bn-adv').textContent=adv;
+  banner.classList.add('on');
+  setTimeout(()=>{
+    banner.classList.remove('on'); if(vs)vs.classList.remove('burst');
+    busy=false;cursor++;
+    if(cursor>=SCHED.length){renderEnding();show('ending');}else renderMatch();
+  },1300);
+}
+
+function rankHTML(id,place){
+  const c=C[id];
+  const medal=place===1?'🥇':'🥈';
+  const label=place===1?'우승':'준우승';
+  return `<div class="rank r${place}"><div class="medal">${medal}</div><div class="rb">
+    <div class="rn"><span class="rlabel">${label}</span>${c.name}</div>
+    <div class="rmerit">${MERIT[id]}</div>
+    <div class="rc">
+      <span class="chip pay">💰 <b>월 ${FEE[id][demo]}원</b></span>
+    </div></div></div>`;
+}
+function renderEnding(){
+  document.getElementById('ranks').innerHTML=
+    rankHTML(res.final.winner,1)+rankHTML(res.final.loser,2);
+}
+
+function buildAppendix(){
+  const ids=['diag','dx','surg','spec','targ','acc','spcl','rad'];
+  let h='';
+  for(const id of ids){const c=C[id];
+    h+=`<div class="acard"><div class="atag">${c.tag}</div><div class="an">${c.name}</div><div class="arows">
+      <span><b>한줄</b>${c.desc}</span>
+      <span><b>가입</b>${c.enroll}</span>
+      <span><b>보상예시</b>${c.benefit}</span>
+      <span class="pay2"><b>보험료</b>30남 ${FEE[id]['30남']} · 30여 ${FEE[id]['30여']} · 50남 ${FEE[id]['50남']} · 50여 ${FEE[id]['50여']}</span>
+    </div></div>`;
+  }
+  document.getElementById('aList').innerHTML=h;
+}
+buildAppendix();
+setDemo(demo);
+</script>
+</body>
+</html>
