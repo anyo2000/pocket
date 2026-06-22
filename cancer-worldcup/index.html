@@ -12,8 +12,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{height:100%}
   body{font-family:"맑은 고딕","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
-    background:radial-gradient(135% 95% at 50% -8%,#FDFAF4,#EEE3D1);color:var(--ink);-webkit-font-smoothing:antialiased;}
-  .app{max-width:480px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;padding:8px 12px 10px;overflow:hidden}
+    background:radial-gradient(135% 95% at 50% -8%,#FDFAF4,#EEE3D1);color:var(--ink);-webkit-font-smoothing:antialiased;
+    position:fixed;inset:0;overflow:hidden}
+  /* 고정 캔버스 + 통째 스케일: 비율·글씨 절대 안 변함 */
+  #stage{position:absolute;left:50%;top:50%;transform-origin:center center;display:flex;flex-direction:column}
+  body.port #stage{width:440px;height:880px;padding:10px 12px}
+  body.land #stage{width:1100px;height:660px;padding:16px 22px}
 
   .screen{display:none;flex:1;flex-direction:column;min-height:0;overflow-y:auto}
   #match{overflow:hidden}
@@ -74,7 +78,7 @@
   .card.sideB .cicon{background:#E7EBF3;color:var(--navy)}
   .ctitle{min-width:0}
   .ctag{font-size:13.5px;font-weight:700}
-  .cov{font-size:clamp(21px,6vw,26px);font-weight:800;line-height:1.15;word-break:keep-all;margin-top:1px}
+  .cov{font-size:26px;font-weight:800;line-height:1.15;word-break:keep-all;margin-top:1px}
   .card.sideA .ctag,.card.sideA .cov{color:var(--maroon)}
   .card.sideB .ctag,.card.sideB .cov{color:var(--navy)}
   .cdesc{font-size:13.5px;color:#6b6457;line-height:1.4;word-break:keep-all}
@@ -86,7 +90,7 @@
   .card.sideA .pay{background:#FBEEEA} .card.sideB .pay{background:#EDF1F7}
   .pay-line{display:flex;align-items:baseline;justify-content:center;gap:7px;flex-wrap:wrap}
   .pay-label{font-size:13px;font-weight:700;color:var(--gray)}
-  .pay-big{font-size:clamp(28px,9vw,36px);font-weight:800;letter-spacing:-1px;line-height:1.05}
+  .pay-big{font-size:40px;font-weight:800;letter-spacing:-1px;line-height:1.05}
   .pay-big .won{font-size:.4em;font-weight:800;margin-left:2px}
   .card.sideA .pay-big{color:var(--maroon)} .card.sideB .pay-big{color:var(--navy)}
   .pay-detail{font-size:13px;color:#8a8170;margin-top:5px;line-height:1.4;word-break:keep-all}
@@ -97,22 +101,14 @@
   .vs{flex:0 0 auto;color:var(--navy);font-weight:900;font-style:italic;font-size:34px;letter-spacing:1px;
     text-shadow:0 4px 11px rgba(60,45,30,.3);margin:-4px 0;z-index:3}
 
-  /* 넓은 화면(웹/가로): 카드 좌·우 배치 */
-  @media (min-width:760px){
-    .app{max-width:960px;padding:14px 18px 18px}
-    .arena{flex-direction:row;align-items:stretch;gap:16px}
-    .arena > #slotA,.arena > #slotB{flex:1 1 0;width:auto}
-    .card{height:100%;justify-content:center;text-align:center;gap:12px;padding:26px 22px;border-radius:22px}
-    .chead{justify-content:center}
-    .cicon{width:54px;height:54px;border-radius:15px} .cicon svg{width:28px;height:28px}
-    .ctag{font-size:15px} .cov{font-size:27px}
-    .cdesc{font-size:14.5px} .enroll{font-size:13.5px}
-    .pay{padding:15px 16px} .pay-label{font-size:14px} .pay-big{font-size:38px} .pay-detail{font-size:13px}
-    .fee-open .amt{font-size:21px}
-    .vs{font-size:46px;margin:0 -6px}
-  }
+  /* 가로(웹) = 좌·우 배치 / 세로(모바일) = 상·하 배치 (JS가 body.land/.port 토글) */
+  body.land .arena{flex-direction:row;align-items:center;justify-content:center;gap:22px}
+  body.land #slotA,body.land #slotB{width:480px;flex:0 0 auto}
+  body.land .card{width:480px;padding:22px 20px;border-radius:22px}
+  body.land .vs{margin:0}
+  body.port .vs{margin:-6px 0}
 
-  @keyframes burst{0%{transform:scale(1)}40%{transform:scale(1.5);background:var(--gold);color:#fff}100%{transform:scale(1)}}
+  @keyframes burst{0%{transform:scale(1)}40%{transform:scale(1.45);color:var(--gold)}100%{transform:scale(1)}}
   .vs.burst{animation:burst .5s}
 
   /* 승부 연출 */
@@ -160,7 +156,7 @@
 </style>
 </head>
 <body>
-<div class="app">
+<div id="stage">
 
   <!-- 인트로 -->
   <section id="intro" class="screen on">
@@ -439,6 +435,21 @@ function buildAppendix(){
 }
 buildAppendix();
 setDemo(demo);
+
+/* ===== 고정 캔버스 자동 스케일 ===== */
+function fitStage(){
+  const vw=window.innerWidth, vh=window.innerHeight;
+  const land = vw/vh > 1.15;
+  document.body.classList.toggle('land',land);
+  document.body.classList.toggle('port',!land);
+  const W=land?1100:440, H=land?660:880, pad=land?28:10;
+  const s=Math.min((vw-pad)/W,(vh-pad)/H);
+  const st=document.getElementById('stage');
+  st.style.transform=`translate(-50%,-50%) scale(${s})`;
+}
+window.addEventListener('resize',fitStage);
+window.addEventListener('orientationchange',fitStage);
+fitStage();
 </script>
 </body>
 </html>
