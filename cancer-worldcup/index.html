@@ -42,57 +42,60 @@
   .demo-pick button.sel{background:var(--navy);color:#fff;border-color:var(--navy);box-shadow:0 6px 16px rgba(44,60,92,.28)}
   .demo-pick button:active{transform:scale(.97)}
 
-  /* 매치 헤더 (컴팩트) */
-  .mhead{text-align:center;margin-bottom:5px;flex:0 0 auto}
-  .round{font-weight:900;font-size:19px;letter-spacing:1px;color:var(--maroon)}
-  .msub{margin-top:2px;font-size:15px;font-weight:700;color:var(--navy)}
-  .demo-chip{font-size:12.5px;font-weight:800;color:var(--navy);background:#fff;border:1.5px solid var(--line);
-    border-radius:999px;padding:9px 13px;white-space:nowrap;box-shadow:0 3px 8px rgba(60,45,30,.1)}
-  .dots{margin-top:5px;display:flex;gap:6px;justify-content:center}
-  .dots i{width:20px;height:4px;border-radius:3px;background:#E0D6C5}
+  /* 매치 상단 바 (진행 + 질문 + 보험료/나이) */
+  .mhead{flex:0 0 auto;text-align:center;padding:2px 0 8px}
+  .mtop{display:flex;align-items:center;justify-content:center;gap:10px}
+  .round{font-weight:900;font-size:18px;letter-spacing:1px;color:var(--maroon)}
+  .dots{display:flex;gap:5px}
+  .dots i{width:16px;height:4px;border-radius:3px;background:#E0D6C5}
   .dots i.done{background:var(--maroon)} .dots i.cur{background:var(--navy)}
+  .msub{margin-top:4px;font-size:15px;font-weight:700;color:var(--navy)}
+  .mctrl{margin-top:9px;display:flex;align-items:center;justify-content:center;gap:9px}
+  .fee-all{background:var(--navy);color:#fff;font-weight:800;font-size:13px;border:none;border-radius:999px;
+    padding:9px 15px;cursor:pointer;font-family:inherit;white-space:nowrap;box-shadow:0 4px 12px rgba(44,60,92,.28)}
+  .fee-all:active{transform:scale(.96)}
+  .demo-chip{font-size:12.5px;font-weight:800;color:var(--navy);background:#fff;border:1.5px solid var(--line);
+    border-radius:999px;padding:8px 13px;white-space:nowrap;box-shadow:0 3px 8px rgba(60,45,30,.1)}
 
-  /* 매치: 위/아래 카드 + 가운데 가로 띠 (세로 풀스크린, 스크롤 0) */
-  .arena{flex:1;display:flex;flex-direction:column;gap:6px;min-height:0}
-  .arena > #slotA,.arena > #slotB{flex:1 1 0;min-height:0;display:flex}
-  .card{flex:1 1 0;min-width:0;min-height:0;display:flex;flex-direction:column;justify-content:center;align-items:center;
-    text-align:center;background:#fff;border-radius:18px;cursor:pointer;overflow:hidden;
-    padding:clamp(8px,1.6vh,16px) 16px;box-shadow:0 6px 18px rgba(60,45,30,.12);transition:transform .12s}
+  /* 매치 본문: 카드 2장(내용 높이) + 가운데 VS, 화면 중앙에 여백 두고 배치 */
+  .arena{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:0}
+  .arena > #slotA,.arena > #slotB{width:100%;flex:0 1 auto;min-height:0;display:flex}
+  .card{width:100%;display:flex;flex-direction:column;gap:8px;background:#fff;border-radius:18px;cursor:pointer;
+    padding:15px 16px;box-shadow:0 8px 22px rgba(60,45,30,.13);transition:transform .12s;overflow:hidden}
   .card:active{transform:scale(.99)}
   .card.sideA{animation:slideD .4s cubic-bezier(.2,.75,.3,1)}
   .card.sideB{animation:slideU .4s cubic-bezier(.2,.75,.3,1)}
   .card.flash{animation:pop .25s}
-  .cicon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
-  .cicon svg{width:24px;height:24px}
+  /* 헤더: 아이콘 + 제목 한 줄 */
+  .chead{display:flex;align-items:center;gap:12px}
+  .cicon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .cicon svg{width:25px;height:25px}
   .card.sideA .cicon{background:#F7E7E3;color:var(--maroon)}
   .card.sideB .cicon{background:#E7EBF3;color:var(--navy)}
-  .ctag{margin-top:6px;font-size:13px;font-weight:700}
-  .cov{font-size:clamp(19px,5.4vw,24px);font-weight:800;line-height:1.15;word-break:keep-all;margin-top:1px}
+  .ctitle{min-width:0}
+  .ctag{font-size:12.5px;font-weight:700}
+  .cov{font-size:clamp(20px,5.6vw,24px);font-weight:800;line-height:1.15;word-break:keep-all;margin-top:1px}
   .card.sideA .ctag,.card.sideA .cov{color:var(--maroon)}
   .card.sideB .ctag,.card.sideB .cov{color:var(--navy)}
-  .cdesc{margin-top:5px;font-size:12.5px;color:#6b6457;line-height:1.35;word-break:keep-all}
-  /* 보상예시: 라벨+큰금액 한 줄 + 세부 한 줄 */
-  .pay{margin-top:9px;display:flex;align-items:baseline;justify-content:center;gap:8px}
-  .pay-label{font-size:13px;font-weight:700;color:var(--gray)}
-  .pay-big{font-size:clamp(24px,7vw,32px);font-weight:800;letter-spacing:-1px;line-height:1}
-  .pay-big .won{font-size:.4em;font-weight:800;margin-left:2px}
-  .card.sideA .pay-big{color:var(--maroon)} .card.sideB .pay-big{color:var(--navy)}
-  .pay-detail{margin-top:5px;font-size:11.5px;color:#9a937f;line-height:1.35;word-break:keep-all}
-  .enroll{margin-top:7px;font-size:12.5px;color:#857f70;line-height:1.35;word-break:keep-all}
+  .cdesc{font-size:12.5px;color:#6b6457;line-height:1.4;word-break:keep-all}
+  .enroll{font-size:12px;color:#857f70;line-height:1.4;word-break:keep-all}
   .enroll b{font-weight:800;margin-right:5px}
   .card.sideA .enroll b{color:var(--maroon)} .card.sideB .enroll b{color:var(--navy)}
-  .fee-open{display:none;margin-top:7px}
+  /* 보상 박스 (카드별 강조색) */
+  .pay{border-radius:13px;padding:10px 13px;text-align:center}
+  .card.sideA .pay{background:#FBEEEA} .card.sideB .pay{background:#EDF1F7}
+  .pay-label{font-size:12px;font-weight:700;color:var(--gray)}
+  .pay-big{font-size:clamp(25px,7.5vw,32px);font-weight:800;letter-spacing:-1px;line-height:1.05;margin-top:1px}
+  .pay-big .won{font-size:.4em;font-weight:800;margin-left:2px}
+  .card.sideA .pay-big{color:var(--maroon)} .card.sideB .pay-big{color:var(--navy)}
+  .pay-detail{font-size:11px;color:#9a937f;margin-top:4px;line-height:1.35;word-break:keep-all}
+  .fee-open{display:none;margin-top:6px}
   .fee-open.show{display:block;animation:fade .2s}
-  .fee-open .amt{font-size:18px;font-weight:800;color:var(--ink)}
-
-  /* 가운데 가로 띠: 💰보험료 · VS · 나이칩 */
-  .center{flex:0 0 auto;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;z-index:3}
-  .vs{color:var(--navy);font-weight:900;font-style:italic;font-size:18px;background:#fff;border:1px solid #EFE6D6;
-    width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;
-    box-shadow:0 5px 16px rgba(60,45,30,.2)}
-  .fee-all{background:var(--navy);color:#fff;font-weight:800;font-size:13.5px;border:none;border-radius:999px;
-    padding:11px 15px;cursor:pointer;font-family:inherit;white-space:nowrap;box-shadow:0 5px 14px rgba(44,60,92,.3)}
-  .fee-all:active{transform:scale(.96)}
+  .fee-open .amt{font-size:17px;font-weight:800;color:var(--ink)}
+  /* 가운데 VS */
+  .vs{flex:0 0 auto;width:46px;height:46px;border-radius:50%;background:#fff;border:1px solid #EFE6D6;
+    color:var(--navy);font-weight:900;font-style:italic;font-size:17px;display:flex;align-items:center;justify-content:center;
+    margin:-4px 0;z-index:3;box-shadow:0 5px 14px rgba(60,45,30,.2)}
 
   @keyframes burst{0%{transform:scale(1)}40%{transform:scale(1.5);background:var(--gold);color:#fff}100%{transform:scale(1)}}
   .vs.burst{animation:burst .5s}
@@ -163,17 +166,16 @@
   <!-- 매치 -->
   <section id="match" class="screen">
     <div class="mhead">
-      <div class="round" id="round">8강</div>
+      <div class="mtop"><span class="round" id="round">8강</span><div class="dots" id="dots"></div></div>
       <div class="msub" id="msub"></div>
-      <div class="dots" id="dots"></div>
+      <div class="mctrl">
+        <button class="fee-all" id="feeAllBtn" onclick="toggleFeeAll()">💰 보험료 보기</button>
+        <div class="demo-chip" id="demoChip"></div>
+      </div>
     </div>
     <div class="arena">
       <div id="slotA"></div>
-      <div class="center">
-        <button class="fee-all" id="feeAllBtn" onclick="toggleFeeAll()">💰 보험료 보기</button>
-        <div class="vs">VS</div>
-        <div class="demo-chip" id="demoChip"></div>
-      </div>
+      <div class="vs">VS</div>
       <div id="slotB"></div>
     </div>
   </section>
@@ -337,15 +339,14 @@ function restart(){start();}
 function cardHTML(id,side){
   const c=C[id];
   return `<div class="card side${side}" id="card_${side}" onclick="pick('${side}')">
-    <div class="cicon">${ICON[id]}</div>
-    <div class="ctag">${c.tag}</div>
-    <div class="cov">${c.name}</div>
+    <div class="chead">
+      <div class="cicon">${ICON[id]}</div>
+      <div class="ctitle"><div class="ctag">${c.tag}</div><div class="cov">${c.name}</div></div>
+    </div>
     <div class="cdesc">${c.desc}</div>
     <div class="enroll"><b>가입</b>${c.enroll}</div>
     ${renderPay(id)}
-    <div class="fee-open" id="fee_${side}">
-      <div class="amt">월 ${FEE[id][demo]}원</div>
-    </div>
+    <div class="fee-open" id="fee_${side}"><div class="amt">월 ${FEE[id][demo]}원</div></div>
   </div>`;
 }
 function toggleFeeAll(){
