@@ -49,7 +49,7 @@
   .dots{display:flex;gap:5px}
   .dots i{width:16px;height:4px;border-radius:3px;background:#E0D6C5}
   .dots i.done{background:var(--maroon)} .dots i.cur{background:var(--navy)}
-  .msub{margin-top:4px;font-size:15px;font-weight:700;color:var(--navy)}
+  .msub{margin-top:4px;font-size:16px;font-weight:700;color:var(--navy)}
   .mctrl{margin-top:9px;display:flex;align-items:center;justify-content:center;gap:9px}
   .fee-all{background:var(--navy);color:#fff;font-weight:800;font-size:13px;border:none;border-radius:999px;
     padding:9px 15px;cursor:pointer;font-family:inherit;white-space:nowrap;box-shadow:0 4px 12px rgba(44,60,92,.28)}
@@ -60,8 +60,8 @@
   /* 매치 본문: 카드 2장(내용 높이) + 가운데 VS, 화면 중앙에 여백 두고 배치 */
   .arena{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:0}
   .arena > #slotA,.arena > #slotB{width:100%;flex:0 1 auto;min-height:0;display:flex}
-  .card{width:100%;display:flex;flex-direction:column;gap:8px;background:#fff;border-radius:18px;cursor:pointer;
-    padding:15px 16px;box-shadow:0 8px 22px rgba(60,45,30,.13);transition:transform .12s;overflow:hidden}
+  .card{width:100%;display:flex;flex-direction:column;gap:9px;background:#fff;border-radius:18px;cursor:pointer;
+    padding:16px 16px;box-shadow:0 8px 22px rgba(60,45,30,.13);transition:transform .12s}
   .card:active{transform:scale(.99)}
   .card.sideA{animation:slideD .4s cubic-bezier(.2,.75,.3,1)}
   .card.sideB{animation:slideU .4s cubic-bezier(.2,.75,.3,1)}
@@ -73,29 +73,44 @@
   .card.sideA .cicon{background:#F7E7E3;color:var(--maroon)}
   .card.sideB .cicon{background:#E7EBF3;color:var(--navy)}
   .ctitle{min-width:0}
-  .ctag{font-size:12.5px;font-weight:700}
-  .cov{font-size:clamp(20px,5.6vw,24px);font-weight:800;line-height:1.15;word-break:keep-all;margin-top:1px}
+  .ctag{font-size:13.5px;font-weight:700}
+  .cov{font-size:clamp(21px,6vw,26px);font-weight:800;line-height:1.15;word-break:keep-all;margin-top:1px}
   .card.sideA .ctag,.card.sideA .cov{color:var(--maroon)}
   .card.sideB .ctag,.card.sideB .cov{color:var(--navy)}
-  .cdesc{font-size:12.5px;color:#6b6457;line-height:1.4;word-break:keep-all}
-  .enroll{font-size:12px;color:#857f70;line-height:1.4;word-break:keep-all}
+  .cdesc{font-size:13.5px;color:#6b6457;line-height:1.4;word-break:keep-all}
+  .enroll{font-size:13px;color:#857f70;line-height:1.4;word-break:keep-all}
   .enroll b{font-weight:800;margin-right:5px}
   .card.sideA .enroll b{color:var(--maroon)} .card.sideB .enroll b{color:var(--navy)}
-  /* 보상 박스 (카드별 강조색) */
-  .pay{border-radius:13px;padding:10px 13px;text-align:center}
+  /* 보상 박스 (카드별 강조색) — 라벨(작은 회색)+큰금액 한 줄 + 세부 */
+  .pay{border-radius:13px;padding:11px 14px;text-align:center}
   .card.sideA .pay{background:#FBEEEA} .card.sideB .pay{background:#EDF1F7}
-  .pay-label{font-size:12px;font-weight:700;color:var(--gray)}
-  .pay-big{font-size:clamp(25px,7.5vw,32px);font-weight:800;letter-spacing:-1px;line-height:1.05;margin-top:1px}
+  .pay-line{display:flex;align-items:baseline;justify-content:center;gap:7px;flex-wrap:wrap}
+  .pay-label{font-size:13px;font-weight:700;color:var(--gray)}
+  .pay-big{font-size:clamp(28px,9vw,36px);font-weight:800;letter-spacing:-1px;line-height:1.05}
   .pay-big .won{font-size:.4em;font-weight:800;margin-left:2px}
   .card.sideA .pay-big{color:var(--maroon)} .card.sideB .pay-big{color:var(--navy)}
-  .pay-detail{font-size:11px;color:#9a937f;margin-top:4px;line-height:1.35;word-break:keep-all}
+  .pay-detail{font-size:13px;color:#8a8170;margin-top:5px;line-height:1.4;word-break:keep-all}
   .fee-open{display:none;margin-top:6px}
   .fee-open.show{display:block;animation:fade .2s}
   .fee-open .amt{font-size:17px;font-weight:800;color:var(--ink)}
-  /* 가운데 VS */
-  .vs{flex:0 0 auto;width:46px;height:46px;border-radius:50%;background:#fff;border:1px solid #EFE6D6;
-    color:var(--navy);font-weight:900;font-style:italic;font-size:17px;display:flex;align-items:center;justify-content:center;
-    margin:-4px 0;z-index:3;box-shadow:0 5px 14px rgba(60,45,30,.2)}
+  /* 가운데 VS (원 없이 큰 그림자 글씨) */
+  .vs{flex:0 0 auto;color:var(--navy);font-weight:900;font-style:italic;font-size:34px;letter-spacing:1px;
+    text-shadow:0 4px 11px rgba(60,45,30,.3);margin:-4px 0;z-index:3}
+
+  /* 넓은 화면(웹/가로): 카드 좌·우 배치 */
+  @media (min-width:760px){
+    .app{max-width:960px;padding:14px 18px 18px}
+    .arena{flex-direction:row;align-items:stretch;gap:16px}
+    .arena > #slotA,.arena > #slotB{flex:1 1 0;width:auto}
+    .card{height:100%;justify-content:center;text-align:center;gap:12px;padding:26px 22px;border-radius:22px}
+    .chead{justify-content:center}
+    .cicon{width:54px;height:54px;border-radius:15px} .cicon svg{width:28px;height:28px}
+    .ctag{font-size:15px} .cov{font-size:27px}
+    .cdesc{font-size:14.5px} .enroll{font-size:13.5px}
+    .pay{padding:15px 16px} .pay-label{font-size:14px} .pay-big{font-size:38px} .pay-detail{font-size:13px}
+    .fee-open .amt{font-size:21px}
+    .vs{font-size:46px;margin:0 -6px}
+  }
 
   @keyframes burst{0%{transform:scale(1)}40%{transform:scale(1.5);background:var(--gold);color:#fff}100%{transform:scale(1)}}
   .vs.burst{animation:burst .5s}
@@ -107,8 +122,8 @@
   .card.loser{opacity:.4;filter:grayscale(.6);transform:scale(.92);transition:.3s}
   #banner{position:fixed;top:15%;left:0;right:0;display:none;flex-direction:column;align-items:center;z-index:40;pointer-events:none}
   #banner.on{display:flex}
-  #banner .toast{background:rgba(44,60,92,.96);padding:17px 30px;border-radius:18px;box-shadow:0 12px 34px rgba(0,0,0,.4);text-align:center;animation:popbig .4s}
-  #banner .bn-name{font-size:27px;font-weight:900;color:#fff;word-break:keep-all;line-height:1.25}
+  #banner .toast{background:rgba(44,60,92,.96);padding:18px 26px;border-radius:18px;box-shadow:0 12px 34px rgba(0,0,0,.4);text-align:center;animation:popbig .4s;max-width:88vw}
+  #banner .bn-name{font-size:26px;font-weight:900;color:#fff;word-break:break-all;line-height:1.3}
   #banner .bn-adv{margin-top:7px;font-size:23px;font-weight:900;color:var(--gold)}
   @keyframes popbig{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
 
@@ -291,8 +306,7 @@ const PAY={
 function renderPay(id){
   const p=PAY[id];
   return `<div class="pay">
-    <div class="pay-label">${p.label}</div>
-    <div class="pay-big">${p.big}<span class="won">만원</span></div>
+    <div class="pay-line"><span class="pay-label">${p.label}</span><span class="pay-big">${p.big}<span class="won">만원</span></span></div>
     <div class="pay-detail">${p.detail}</div>
   </div>`;
 }
@@ -391,7 +405,7 @@ function pick(side){
     banner.classList.remove('on'); if(vs)vs.classList.remove('burst');
     busy=false;cursor++;
     if(cursor>=SCHED.length){renderEnding();show('ending');}else renderMatch();
-  },1300);
+  },1900);
 }
 
 function rankHTML(id,place){
