@@ -48,18 +48,20 @@
 
   /* 매치 상단 바 (진행 + 질문 + 보험료/나이) */
   .mhead{flex:0 0 auto;text-align:center;padding:2px 0 8px}
-  .mtop{display:flex;align-items:center;justify-content:center;gap:10px}
-  .round{font-weight:900;font-size:18px;letter-spacing:1px;color:var(--maroon)}
-  .dots{display:flex;gap:5px}
+  .mtop{display:flex;align-items:center;justify-content:center;gap:12px}
+  .mtitle{font-weight:900;font-size:19px;color:var(--navy);letter-spacing:-.3px}
+  .round{font-weight:900;font-size:15px;letter-spacing:1px;color:#fff;background:var(--maroon);border-radius:999px;padding:4px 13px}
+  .msub{margin-top:7px;font-size:16px;font-weight:700;color:var(--navy)}
+  .dots{margin-top:7px;display:flex;gap:5px;justify-content:center}
   .dots i{width:16px;height:4px;border-radius:3px;background:#E0D6C5}
   .dots i.done{background:var(--maroon)} .dots i.cur{background:var(--navy)}
-  .msub{margin-top:4px;font-size:16px;font-weight:700;color:var(--navy)}
-  .mctrl{margin-top:9px;display:flex;align-items:center;justify-content:center;gap:9px}
-  .fee-all{background:var(--navy);color:#fff;font-weight:800;font-size:13px;border:none;border-radius:999px;
-    padding:9px 15px;cursor:pointer;font-family:inherit;white-space:nowrap;box-shadow:0 4px 12px rgba(44,60,92,.28)}
+  /* 하단 컨트롤 */
+  .mfoot{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:10px;padding-top:10px}
+  .fee-all{background:var(--navy);color:#fff;font-weight:800;font-size:14px;border:none;border-radius:999px;
+    padding:11px 18px;cursor:pointer;font-family:inherit;white-space:nowrap;box-shadow:0 5px 14px rgba(44,60,92,.3)}
   .fee-all:active{transform:scale(.96)}
-  .demo-chip{font-size:12.5px;font-weight:800;color:var(--navy);background:#fff;border:1.5px solid var(--line);
-    border-radius:999px;padding:8px 13px;white-space:nowrap;box-shadow:0 3px 8px rgba(60,45,30,.1)}
+  .demo-chip{font-size:13px;font-weight:800;color:var(--navy);background:#fff;border:1.5px solid var(--line);
+    border-radius:999px;padding:9px 14px;white-space:nowrap;box-shadow:0 3px 8px rgba(60,45,30,.1)}
 
   /* 매치 본문: 카드 2장(내용 높이) + 가운데 VS, 화면 중앙에 여백 두고 배치 */
   .arena{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:0}
@@ -81,7 +83,10 @@
   .cov{font-size:26px;font-weight:800;line-height:1.15;word-break:keep-all;margin-top:1px}
   .card.sideA .ctag,.card.sideA .cov{color:var(--maroon)}
   .card.sideB .ctag,.card.sideB .cov{color:var(--navy)}
-  .cdesc{font-size:13.5px;color:#6b6457;line-height:1.4;word-break:keep-all}
+  .cdesc{font-size:15px;color:#5a5346;line-height:1.4;word-break:keep-all}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+  .tag{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
+  .card.sideA .tag{background:#F5E3DF;color:var(--maroon)} .card.sideB .tag{background:#E5EAF2;color:var(--navy)}
   .enroll{font-size:13px;color:#857f70;line-height:1.4;word-break:keep-all}
   .enroll b{font-weight:800;margin-right:5px}
   .card.sideA .enroll b{color:var(--maroon)} .card.sideB .enroll b{color:var(--navy)}
@@ -94,9 +99,12 @@
   .pay-big .won{font-size:.4em;font-weight:800;margin-left:2px}
   .card.sideA .pay-big{color:var(--maroon)} .card.sideB .pay-big{color:var(--navy)}
   .pay-detail{font-size:13px;color:#8a8170;margin-top:5px;line-height:1.4;word-break:keep-all}
-  .fee-open{display:none;margin-top:6px}
+  /* 보험료 박스 (누르면 등장, 카드별 강조색 채움) */
+  .fee-open{display:none;margin-top:9px;border-radius:12px;padding:9px 12px;text-align:center}
   .fee-open.show{display:block;animation:fade .2s}
-  .fee-open .amt{font-size:17px;font-weight:800;color:var(--ink)}
+  .card.sideA .fee-open{background:var(--maroon)} .card.sideB .fee-open{background:var(--navy)}
+  .fee-open .flab{font-size:12px;font-weight:700;color:rgba(255,255,255,.82)}
+  .fee-open .amt{font-size:26px;font-weight:800;color:#fff;letter-spacing:-.5px;margin-top:1px}
   /* 가운데 VS (원 없이 큰 그림자 글씨) */
   .vs{flex:0 0 auto;color:var(--navy);font-weight:900;font-style:italic;font-size:34px;letter-spacing:1px;
     text-shadow:0 4px 11px rgba(60,45,30,.3);margin:-4px 0;z-index:3}
@@ -177,17 +185,18 @@
   <!-- 매치 -->
   <section id="match" class="screen">
     <div class="mhead">
-      <div class="mtop"><span class="round" id="round">8강</span><div class="dots" id="dots"></div></div>
+      <div class="mtop"><span class="mtitle">암보장 챔피언십</span><span class="round" id="round">8강</span></div>
       <div class="msub" id="msub"></div>
-      <div class="mctrl">
-        <button class="fee-all" id="feeAllBtn" onclick="toggleFeeAll()">💰 보험료 보기</button>
-        <div class="demo-chip" id="demoChip"></div>
-      </div>
+      <div class="dots" id="dots"></div>
     </div>
     <div class="arena">
       <div id="slotA"></div>
       <div class="vs">VS</div>
       <div id="slotB"></div>
+    </div>
+    <div class="mfoot">
+      <button class="fee-all" id="feeAllBtn" onclick="toggleFeeAll()">💰 보험료 보기</button>
+      <div class="demo-chip" id="demoChip"></div>
     </div>
   </section>
 
@@ -319,6 +328,18 @@ const MERIT={
   rad:'급여 항암 방사선·약물 치료비를 정액 보장',
 };
 
+/* ===== 카테고리 태그 (담보가 다루는 치료/구성) ===== */
+const TAGS={
+  diag:['진단'],
+  dx:['진단','비급여표적','비급여양성자'],
+  surg:['수술'],
+  spec:['수술','방사선','약물','중환자','호스피스'],
+  targ:['비급여표적'],
+  acc:['수술','방사선','약물','중환자'],
+  spcl:['수술','방사선','약물','중환자'],
+  rad:['방사선','약물'],
+};
+
 /* ===== 브래킷 (7경기, 1·2위만) ===== */
 const SCHED=[
   {key:'r1_0',round:'8강',sub:'더 끌리는 보장은?',a:'diag',b:'dx'},
@@ -354,9 +375,13 @@ function cardHTML(id,side){
       <div class="ctitle"><div class="ctag">${c.tag}</div><div class="cov">${c.name}</div></div>
     </div>
     <div class="cdesc">${c.desc}</div>
+    <div class="tags">${TAGS[id].map(t=>`<span class="tag">${t}</span>`).join('')}</div>
     <div class="enroll"><b>가입</b>${c.enroll}</div>
     ${renderPay(id)}
-    <div class="fee-open" id="fee_${side}"><div class="amt">월 ${FEE[id][demo]}원</div></div>
+    <div class="fee-open" id="fee_${side}">
+      <div class="flab">${DEMO[demo]} · 월 보험료</div>
+      <div class="amt">${FEE[id][demo]}원</div>
+    </div>
   </div>`;
 }
 function toggleFeeAll(){
@@ -371,7 +396,9 @@ function toggleFeeAll(){
 function renderMatch(){
   const m=resolve(SCHED[cursor]);
   document.getElementById('round').textContent=m.round;
-  document.getElementById('msub').textContent=m.sub;
+  const who=DEMO[demo]+'자';
+  document.getElementById('msub').textContent=
+    m.key==='final'?`${who}의 1순위 암보장을 골라주세요`:`${who}에게 더 중요하다고 생각되는 보장을 선택해주세요`;
   document.getElementById('demoChip').textContent=DEMO[demo];
   let d='';for(let i=0;i<SCHED.length;i++)d+=`<i class="${i<cursor?'done':(i===cursor?'cur':'')}"></i>`;
   document.getElementById('dots').innerHTML=d;
