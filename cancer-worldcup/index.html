@@ -38,7 +38,7 @@
   #intro h1{font-size:34px;font-weight:800;letter-spacing:-.5px;color:var(--maroon)}
   #intro .sub{color:#6b6457;font-size:16px;line-height:1.6}
   #intro .start-wrap{width:100%;max-width:380px;margin-top:8px}
-  #intro .basis{color:var(--gray);font-size:12.5px;margin-top:10px}
+  #intro .basis{color:var(--gray);font-size:14.5px;margin-top:12px}
   .pick-label{font-size:14px;font-weight:700;color:var(--navy);margin-top:4px}
   .demo-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:380px}
   .demo-pick button{font-family:inherit;font-weight:800;font-size:16px;padding:14px;border-radius:13px;
@@ -85,6 +85,7 @@
   .ctitle{min-width:0}
   .ctag{font-size:13.5px;font-weight:700}
   .cov{font-size:26px;font-weight:800;line-height:1.15;word-break:keep-all;margin-top:1px}
+  .covsub{font-size:.56em;font-weight:800;letter-spacing:-.3px}
   .card.sideA .ctag,.card.sideA .cov{color:var(--maroon)}
   .card.sideB .ctag,.card.sideB .cov{color:var(--navy)}
   .cdesc{font-size:15px;color:#5a5346;line-height:1.4;word-break:keep-all}
@@ -104,8 +105,8 @@
   .card.sideA .pay-big{color:var(--maroon)} .card.sideB .pay-big{color:var(--navy)}
   .pay-detail{font-size:13px;color:#8a8170;margin-top:5px;line-height:1.4;word-break:keep-all}
   /* 보험료 박스 (누르면 등장, 카드별 강조색 채움) */
-  .fee-open{display:none;margin-top:9px;border-radius:12px;padding:13px;text-align:center}
-  .fee-open.show{display:block;animation:fade .2s}
+  .fee-open{visibility:hidden;margin-top:9px;border-radius:12px;padding:13px;text-align:center}
+  .fee-open.show{visibility:visible;animation:fade .2s}
   .card.sideA .fee-open{background:var(--maroon)} .card.sideB .fee-open{background:var(--navy)}
   .fee-open .amt{font-size:27px;font-weight:800;color:#fff;letter-spacing:-.5px}
   .fee-open .wonm{font-size:.58em;font-weight:700;margin-right:5px;opacity:.85}
@@ -116,7 +117,7 @@
   /* 가로(웹) = 좌·우 배치 / 세로(모바일) = 상·하 배치 (JS가 body.land/.port 토글) */
   body.land .arena{flex-direction:row;align-items:center;justify-content:center;gap:22px}
   body.land #slotA,body.land #slotB{width:480px;flex:0 0 auto}
-  body.land .card{width:480px;padding:22px 20px;border-radius:22px}
+  body.land .card{width:480px;height:430px;justify-content:center;padding:22px 20px;border-radius:22px}
   body.land .vs{margin:0}
   body.port .vs{margin:-6px 0}
 
@@ -140,7 +141,9 @@
   .ehead .crown{font-size:44px}
   .ehead h2{font-size:26px;font-weight:800;margin-top:2px;color:var(--navy)}
   .ehead p{color:#6b6457;font-size:14px;margin-top:5px}
-  .rank{background:#fff;border-radius:17px;padding:16px;margin-bottom:12px;display:flex;gap:13px;align-items:flex-start;box-shadow:0 8px 22px rgba(60,45,30,.13)}
+  #ranks{display:flex;gap:14px;margin-bottom:14px}
+  body.port #ranks{flex-direction:column;gap:11px}
+  .rank{flex:1;background:#fff;border-radius:17px;padding:16px;display:flex;gap:13px;align-items:flex-start;box-shadow:0 8px 22px rgba(60,45,30,.13)}
   .rank.r1{outline:3px solid var(--gold)}
   .rank .medal{font-size:34px;flex:0 0 auto}
   .rank .rb{flex:1;min-width:0}
@@ -183,7 +186,7 @@
       <button data-d="50여" onclick="setDemo('50여')">50대 여</button>
     </div>
     <div class="start-wrap"><button class="btn btn-cta" onclick="start()">시작하기</button></div>
-    <p class="basis">보험료 = 선택한 나이·성별 · 가입 1천만 기준 (한아름더건강한종합 2604)</p>
+    <p class="basis">보험료 : 한아름 2604 가입금액 1천만 기준</p>
   </section>
 
   <!-- 매치 -->
@@ -214,12 +217,9 @@
       <p>토너먼트 결과예요</p>
     </div>
     <div id="ranks"></div>
-    <div class="note-box">이 결과는 갈아타라는 뜻이 아니라, 지금 보장에서 <b>무엇부터 채울지</b> 우선순위를 보는 용도예요.</div>
     <div class="eactions">
       <button class="btn btn-cta" onclick="restart()">다시하기</button>
-      <button class="btn btn-ghost" onclick="show('appendix')">8개 담보 전체 보기</button>
     </div>
-    <p class="foot">보험료=남50·가입1천만(암진단및치료비는 결합 5천만형) · 출처: 0622신담보 담보카드 약관검증본</p>
   </section>
 
   <!-- 부록 -->
@@ -314,6 +314,7 @@ const PAY={
   spcl:{label:'최대',        big:'1,500', detail:'1회 없음 · 2회 1,000만 · 3·4회 1,500만'},
   rad: {label:'방사선 치료 시',big:'1,000', detail:'추가 약물치료는 보장 X'},
 };
+function fmtName(n){return n.replace(/(\([^)]*\))/,'<span class="covsub">$1</span>');}
 function renderPay(id){
   const p=PAY[id];
   return `<div class="pay">
@@ -378,7 +379,7 @@ function cardHTML(id,side){
   return `<div class="card side${side}" id="card_${side}" onclick="pick('${side}')">
     <div class="chead">
       <div class="cicon">${ICON[id]}</div>
-      <div class="ctitle"><div class="ctag">${c.tag}</div><div class="cov">${c.name}</div></div>
+      <div class="ctitle"><div class="ctag">${c.tag}</div><div class="cov">${fmtName(c.name)}</div></div>
     </div>
     <div class="cdesc">${c.desc}</div>
     <div class="tags">${TAGS[id].map(t=>`<span class="tag">${t}</span>`).join('')}</div>
