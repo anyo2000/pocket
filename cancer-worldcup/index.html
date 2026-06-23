@@ -321,7 +321,7 @@ const PAY={
   spcl:{label:'최대',        big:'1,500', detail:'1회 X · 2회 1,000만 · 3회 1,500만'},
   rad: {label:'방사선 치료 시',big:'1,000', detail:'추가 약물치료는 보장 X'},
 };
-function fmtName(n){return n.replace(/(\([^)]*\))/,'<span class="covsub">$1</span>');}
+function fmtName(n){return n.replace(/(\([^)]*\))/,'<wbr><span class="covsub">$1</span>');}
 function renderPay(id){
   const p=PAY[id];
   return `<div class="pay">
