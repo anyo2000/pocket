@@ -146,17 +146,17 @@
   .ehead .crown{font-size:44px}
   .ehead h2{font-size:26px;font-weight:800;margin-top:2px;color:var(--navy)}
   .ehead p{color:#6b6457;font-size:14px;margin-top:5px}
-  #ranks{display:flex;gap:14px;margin-bottom:14px}
-  body.port #ranks{flex-direction:column;gap:11px}
-  .rank{flex:1;background:#fff;border-radius:17px;padding:16px;display:flex;gap:13px;align-items:flex-start;box-shadow:0 8px 22px rgba(60,45,30,.13)}
+  #ranks{display:flex;gap:20px;justify-content:center;margin-bottom:16px}
+  body.port #ranks{flex-direction:column;align-items:center;gap:14px}
+  .rank{flex:0 1 320px;max-width:340px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;
+    background:#fff;border-radius:20px;padding:26px 22px;box-shadow:0 8px 22px rgba(60,45,30,.14)}
   .rank.r1{outline:3px solid var(--gold)}
-  .rank .medal{font-size:34px;flex:0 0 auto}
-  .rank .rb{flex:1;min-width:0}
-  .rank .rn{font-size:21px;font-weight:800;color:var(--navy);word-break:keep-all}
-  .rank .rlabel{font-size:13px;font-weight:800;color:var(--maroon);margin-right:6px}
-  .rank .rmerit{font-size:15.5px;color:#5a5346;margin-top:6px;line-height:1.45;word-break:keep-all}
-  .rank .rc{margin-top:9px;display:flex;flex-wrap:wrap;gap:7px}
-  .chip{font-size:13px;background:var(--box);border-radius:9px;padding:6px 10px;color:#3a4654}
+  .rank .medal{font-size:56px;line-height:1}
+  .rank .rn{font-size:25px;font-weight:800;color:var(--navy);word-break:keep-all;line-height:1.2}
+  .rank .rlabel{font-size:15px;font-weight:800;color:var(--maroon);margin-right:5px}
+  .rank .rmerit{font-size:16.5px;color:#5a5346;line-height:1.5;word-break:keep-all}
+  .rank .rc{margin-top:2px}
+  .chip{font-size:16px;background:var(--box);border-radius:10px;padding:8px 14px;color:#3a4654}
   .chip b{color:var(--navy)} .chip.pay b{color:var(--maroon)}
   .note-box{background:#fff;border-left:5px solid var(--maroon);border-radius:12px;padding:13px 15px;margin:4px 0 18px;font-size:13.5px;line-height:1.6;color:#5a5346}
   .note-box b{color:var(--maroon)}
@@ -449,12 +449,12 @@ function rankHTML(id,place){
   const c=C[id];
   const medal=place===1?'🥇':'🥈';
   const label=place===1?'우승':'준우승';
-  return `<div class="rank r${place}"><div class="medal">${medal}</div><div class="rb">
-    <div class="rn"><span class="rlabel">${label}</span>${c.name}</div>
+  return `<div class="rank r${place}">
+    <div class="medal">${medal}</div>
+    <div class="rn"><span class="rlabel">${label}</span>${fmtName(c.name)}</div>
     <div class="rmerit">${MERIT[id]}</div>
-    <div class="rc">
-      <span class="chip pay">💰 <b>월 ${FEE[id][demo]}원</b></span>
-    </div></div></div>`;
+    <div class="rc"><span class="chip pay">💰 <b>월 ${FEE[id][demo]}원</b></span></div>
+  </div>`;
 }
 function renderEnding(){
   document.getElementById('ranks').innerHTML=
