@@ -55,7 +55,7 @@
   .mhead{flex:0 0 auto;text-align:center;padding:2px 0 12px;border-bottom:1.5px solid #E8DFCD;margin-bottom:6px}
   .mtitlebar{display:flex;align-items:center;justify-content:center;gap:16px}
   .mtitle{font-weight:900;font-size:34px;color:var(--navy);letter-spacing:-1px}
-  .hbadge{font-size:16px;font-weight:800;padding:8px 17px;border-radius:999px;white-space:nowrap;color:#fff;flex:0 0 auto}
+  .hbadge{font-size:13px;font-weight:800;padding:5px 12px;border-radius:999px;white-space:nowrap;color:#fff;flex:0 0 auto}
   .hbadge.demo{background:linear-gradient(135deg,#34507F,#23344F);box-shadow:0 4px 12px rgba(44,60,92,.28)}
   .hbadge.round{background:var(--maroon);letter-spacing:1px}
   .dots{margin-top:10px;display:flex;gap:5px;justify-content:center}
@@ -125,6 +125,24 @@
   body.land .card{width:490px;height:440px;justify-content:space-between;padding:18px 22px;border-radius:22px}
   body.land .vs{margin:0}
   body.port .vs{margin:-6px 0}
+
+  /* 모바일(세로) 컴팩트 — 카드 2장+VS가 880px 안에 들어가게 (PC는 영향 없음) */
+  body.port .card{padding:13px 15px;gap:8px}
+  body.port .chead{gap:10px}
+  body.port .cicon{width:40px;height:40px;border-radius:11px}
+  body.port .cicon svg{width:22px;height:22px}
+  body.port .ctag{font-size:13.5px}
+  body.port .cov{font-size:23px;line-height:1.12}
+  body.port .cdesc{font-size:15.5px;line-height:1.35}
+  body.port .tags{gap:6px;margin-top:0}
+  body.port .tag{font-size:13px;padding:5px 11px}
+  body.port .enroll{font-size:13px}
+  body.port .pay{padding:8px 12px;border-radius:11px}
+  body.port .pay-big{font-size:33px}
+  body.port .pay-big .won{font-size:.42em}
+  body.port .pay-detail{font-size:13px;margin-top:3px}
+  body.port .fee-open{padding:10px;margin-top:7px;border-radius:11px}
+  body.port .fee-open .amt{font-size:24px}
 
   @keyframes burst{0%{transform:scale(1)}40%{transform:scale(1.45);color:var(--gold)}100%{transform:scale(1)}}
   .vs.burst{animation:burst .5s}
@@ -413,7 +431,7 @@ function flashBtn(){
 function renderMatch(){
   const m=resolve(SCHED[cursor]);
   document.getElementById('round').textContent=m.round;
-  document.getElementById('demoBadge').textContent='👤 '+DEMO[demo]+'자';
+  document.getElementById('demoBadge').textContent=DEMO[demo].replace(/\s/g,'');
   let d='';for(let i=0;i<SCHED.length;i++)d+=`<i class="${i<cursor?'done':(i===cursor?'cur':'')}"></i>`;
   document.getElementById('dots').innerHTML=d;
   document.getElementById('slotA').innerHTML=cardHTML(m.a,'A');
