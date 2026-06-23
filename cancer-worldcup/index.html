@@ -51,15 +51,21 @@
   .mtop{display:flex;align-items:center;justify-content:center;gap:12px}
   .mtitle{font-weight:900;font-size:19px;color:var(--navy);letter-spacing:-.3px}
   .round{font-weight:900;font-size:15px;letter-spacing:1px;color:#fff;background:var(--maroon);border-radius:999px;padding:4px 13px}
-  .msub{margin-top:7px;font-size:16px;font-weight:700;color:var(--navy)}
+  .demo-badge{display:inline-block;margin-top:11px;font-size:19px;font-weight:900;color:#fff;
+    background:linear-gradient(135deg,#34507F,#23344F);border-radius:999px;padding:8px 22px;
+    box-shadow:0 6px 16px rgba(44,60,92,.32);letter-spacing:.3px}
+  .msub{margin-top:9px;font-size:16px;font-weight:700;color:var(--navy)}
   .dots{margin-top:7px;display:flex;gap:5px;justify-content:center}
   .dots i{width:16px;height:4px;border-radius:3px;background:#E0D6C5}
   .dots i.done{background:var(--maroon)} .dots i.cur{background:var(--navy)}
   /* 하단 컨트롤 */
   .mfoot{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:10px;padding-top:10px}
-  .fee-all{background:var(--navy);color:#fff;font-weight:800;font-size:14px;border:none;border-radius:999px;
-    padding:11px 18px;cursor:pointer;font-family:inherit;white-space:nowrap;box-shadow:0 5px 14px rgba(44,60,92,.3)}
+  .fee-all{background:var(--maroon);color:#fff;font-weight:800;font-size:16px;border:none;border-radius:999px;
+    padding:13px 26px;cursor:pointer;font-family:inherit;white-space:nowrap;box-shadow:0 6px 16px rgba(162,59,45,.35)}
   .fee-all:active{transform:scale(.96)}
+  .fee-all.done{background:#7a8aa8;cursor:default;box-shadow:none;font-size:15px}
+  .fee-all.pulse{animation:btnpulse .45s}
+  @keyframes btnpulse{0%,100%{transform:scale(1)}45%{transform:scale(1.1)}}
   .demo-chip{font-size:13px;font-weight:800;color:var(--navy);background:#fff;border:1.5px solid var(--line);
     border-radius:999px;padding:9px 14px;white-space:nowrap;box-shadow:0 3px 8px rgba(60,45,30,.1)}
 
@@ -186,6 +192,7 @@
   <section id="match" class="screen">
     <div class="mhead">
       <div class="mtop"><span class="mtitle">암보장 챔피언십</span><span class="round" id="round">8강</span></div>
+      <div class="demo-badge" id="demoBadge"></div>
       <div class="msub" id="msub"></div>
       <div class="dots" id="dots"></div>
     </div>
@@ -195,8 +202,7 @@
       <div id="slotB"></div>
     </div>
     <div class="mfoot">
-      <button class="fee-all" id="feeAllBtn" onclick="toggleFeeAll()">💰 보험료 보기</button>
-      <div class="demo-chip" id="demoChip"></div>
+      <button class="fee-all" id="feeAllBtn" onclick="reveal()">💰 보험료 비교하기</button>
     </div>
   </section>
 
@@ -379,37 +385,42 @@ function cardHTML(id,side){
     <div class="enroll"><b>가입</b>${c.enroll}</div>
     ${renderPay(id)}
     <div class="fee-open" id="fee_${side}">
-      <div class="flab">${DEMO[demo]} · 월 보험료</div>
+      <div class="flab">월 보험료</div>
       <div class="amt">${FEE[id][demo]}원</div>
     </div>
   </div>`;
 }
-function toggleFeeAll(){
-  feeShown=!feeShown;
-  const a=document.getElementById('fee_A'), b=document.getElementById('fee_B');
-  if(a)a.classList.toggle('show',feeShown);
-  if(b)b.classList.toggle('show',feeShown);
+function reveal(){
+  if(revealed)return;
+  revealed=true;
+  document.getElementById('fee_A').classList.add('show');
+  document.getElementById('fee_B').classList.add('show');
   const btn=document.getElementById('feeAllBtn');
-  if(btn)btn.textContent=feeShown?'💰 보험료 닫기':'💰 보험료 보기';
+  if(btn){btn.textContent='👆 더 끌리는 카드를 선택하세요';btn.classList.add('done');}
+}
+function flashBtn(){
+  const b=document.getElementById('feeAllBtn'); if(!b)return;
+  b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse');
 }
 
 function renderMatch(){
   const m=resolve(SCHED[cursor]);
   document.getElementById('round').textContent=m.round;
-  const who=DEMO[demo]+'자';
+  document.getElementById('demoBadge').textContent='👤 '+DEMO[demo]+'자';
   document.getElementById('msub').textContent=
-    m.key==='final'?`${who}의 1순위 암보장을 골라주세요`:`${who}에게 더 중요하다고 생각되는 보장을 선택해주세요`;
-  document.getElementById('demoChip').textContent=DEMO[demo];
+    m.key==='final'?'1순위 암보장을 골라주세요':'더 중요하다고 생각되는 보장을 선택해주세요';
   let d='';for(let i=0;i<SCHED.length;i++)d+=`<i class="${i<cursor?'done':(i===cursor?'cur':'')}"></i>`;
   document.getElementById('dots').innerHTML=d;
   document.getElementById('slotA').innerHTML=cardHTML(m.a,'A');
   document.getElementById('slotB').innerHTML=cardHTML(m.b,'B');
-  feeShown=false;
-  const fb=document.getElementById('feeAllBtn'); if(fb)fb.textContent='💰 보험료 보기';
+  revealed=false;
+  const fb=document.getElementById('feeAllBtn'); if(fb){fb.textContent='💰 보험료 비교하기';fb.classList.remove('done');}
 }
-let busy=false, feeShown=false;
+let busy=false, revealed=false;
 function pick(side){
-  if(busy)return;busy=true;
+  if(busy)return;
+  if(!revealed){ flashBtn(); return; }   // 보험료 본 뒤에만 선택 가능
+  busy=true;
   const m=SCHED[cursor];
   const win=side==='A'?m.a:m.b, lose=side==='A'?m.b:m.a;
   res[m.key]={winner:win,loser:lose};
