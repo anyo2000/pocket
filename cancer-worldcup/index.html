@@ -35,11 +35,20 @@
   .btn{cursor:pointer;border:none;font-family:inherit;font-weight:800;border-radius:14px;transition:.12s}
   .btn-cta{background:var(--maroon);color:#fff;font-size:20px;padding:17px;box-shadow:0 8px 20px rgba(162,59,45,.32);width:100%}
   .btn-cta:active{transform:scale(.97)}
+  /* 시작 버튼 강조 — 크고 화려하게 + 골드 후광 펄스 */
+  .btn-start{font-size:25px;padding:21px;letter-spacing:.5px;
+    background:linear-gradient(135deg,#C23A2C,#A23B2D 55%,#8C2D21);
+    box-shadow:0 12px 28px rgba(162,59,45,.45);animation:ctaPulse 1.8s ease-in-out infinite}
+  @keyframes ctaPulse{
+    0%,100%{box-shadow:0 12px 28px rgba(162,59,45,.42),0 0 0 0 rgba(217,154,43,.55)}
+    50%{box-shadow:0 14px 32px rgba(162,59,45,.5),0 0 0 14px rgba(217,154,43,0)}}
   .btn-ghost{background:#fff;color:var(--navy);font-size:16px;padding:14px;border:1.5px solid var(--line);width:100%}
 
   /* 인트로 */
   #intro{justify-content:center;align-items:center;text-align:center;gap:14px}
-  .emoji{font-size:56px}
+  .emoji{font-size:60px;animation:emojiPop .7s cubic-bezier(.2,1.4,.4,1) both,emojiFloat 3s ease-in-out 1s infinite}
+  @keyframes emojiPop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+  @keyframes emojiFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
   #intro h1{font-size:34px;font-weight:800;letter-spacing:-.5px;color:var(--maroon)}
   #intro .sub{color:#6b6457;font-size:16px;line-height:1.6}
   #intro .start-wrap{width:100%;max-width:380px;margin-top:8px}
@@ -157,6 +166,15 @@
   #banner .toast{background:rgba(44,60,92,.97);padding:28px 40px;border-radius:22px;box-shadow:0 18px 46px rgba(0,0,0,.45);text-align:center;animation:popbig .4s;max-width:90vw}
   #banner .bn-name{font-size:34px;font-weight:900;color:#fff;word-break:break-all;line-height:1.25}
   #banner .bn-adv{margin-top:10px;font-size:30px;font-weight:900;color:var(--gold)}
+  /* 라운드 시작 연출 */
+  #roundpop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:50;pointer-events:none;
+    background:radial-gradient(circle at 50% 45%,rgba(44,60,92,.34),rgba(30,40,60,.62))}
+  #roundpop.on{display:flex;animation:rpBg .25s ease}
+  #roundpop .rp-txt{font-size:58px;font-weight:900;color:#FFD86B;letter-spacing:-1.5px;white-space:nowrap;
+    text-shadow:0 5px 16px rgba(0,0,0,.5),0 0 34px rgba(217,154,43,.65);
+    animation:rpPop .55s cubic-bezier(.2,1.35,.35,1) both}
+  @keyframes rpBg{from{opacity:0}to{opacity:1}}
+  @keyframes rpPop{0%{transform:scale(.4) rotate(-7deg);opacity:0}55%{transform:scale(1.14) rotate(2deg);opacity:1}100%{transform:scale(1) rotate(0)}}
   @keyframes popbig{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
 
   /* 엔딩 */
@@ -210,7 +228,7 @@
       <button data-d="50남" onclick="setDemo('50남')">50대 남</button>
       <button data-d="50여" onclick="setDemo('50여')">50대 여</button>
     </div>
-    <div class="start-wrap"><button class="btn btn-cta" onclick="start()">시작하기</button></div>
+    <div class="start-wrap"><button class="btn btn-cta btn-start" onclick="start()">🏆 시작하기</button></div>
     <p class="basis">보험료 : 한아름 2604 가입금액 1천만 기준</p>
   </section>
 
@@ -258,6 +276,7 @@
 </div>
 
 <div id="banner"><div class="toast"><div class="bn-name"></div><div class="bn-adv"></div></div></div>
+<div id="roundpop"><span class="rp-txt"></span></div>
 
 <script>
 /* ===== 별명 / 라인아이콘 ===== */
@@ -396,8 +415,16 @@ function show(id){
   if(id!=='appendix') lastScreen=id;
   window.scrollTo(0,0);
 }
-function start(){cursor=0;for(const k in res)delete res[k];renderMatch();show('match');}
+function start(){cursor=0;for(const k in res)delete res[k];renderMatch();show('match');showRound('8강 시작!');}
 function restart(){start();}
+function roundLabel(r){return r==='결승'?'결승!':r+' 시작!';}
+function showRound(text){
+  const rp=document.getElementById('roundpop');
+  rp.querySelector('.rp-txt').textContent=text;
+  rp.classList.remove('on'); void rp.offsetWidth; rp.classList.add('on');
+  if(navigator.vibrate)navigator.vibrate([25,35,55]);
+  setTimeout(()=>rp.classList.remove('on'),1150);
+}
 
 function cardHTML(id,side){
   const c=C[id];
@@ -461,7 +488,9 @@ function pick(side){
   setTimeout(()=>{
     banner.classList.remove('on'); if(vs)vs.classList.remove('burst');
     busy=false;cursor++;
-    if(cursor>=SCHED.length){renderEnding();show('ending');}else renderMatch();
+    if(cursor>=SCHED.length){renderEnding();show('ending');}
+    else if(SCHED[cursor].round!==SCHED[cursor-1].round){renderMatch();showRound(roundLabel(SCHED[cursor].round));}
+    else renderMatch();
   },1900);
 }
 
