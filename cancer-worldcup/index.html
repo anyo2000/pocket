@@ -152,10 +152,12 @@
     background:#fff;border-radius:20px;padding:26px 22px;box-shadow:0 8px 22px rgba(60,45,30,.14)}
   .rank.r1{outline:3px solid var(--gold)}
   .rank .medal{font-size:56px;line-height:1}
-  .rank .rn{font-size:25px;font-weight:800;color:var(--navy);word-break:keep-all;line-height:1.2}
+  .rank .rn{font-size:25px;font-weight:800;color:var(--navy);word-break:keep-all;line-height:1.2;
+    height:78px;display:flex;flex-wrap:wrap;align-items:center;align-content:center;justify-content:center}
   .rank .rlabel{font-size:15px;font-weight:800;color:var(--maroon);margin-right:5px}
-  .rank .rmerit{font-size:16.5px;color:#5a5346;line-height:1.5;word-break:keep-all}
-  .rank .rc{margin-top:2px}
+  .rank .rmerit{font-size:16.5px;color:#5a5346;line-height:1.5;word-break:keep-all;
+    height:3em;display:flex;align-items:center;justify-content:center}
+  .rank .rc{height:42px;display:flex;align-items:center;justify-content:center}
   .chip{font-size:16px;background:var(--box);border-radius:10px;padding:8px 14px;color:#3a4654}
   .chip b{color:var(--navy)} .chip.pay b{color:var(--maroon)}
   .note-box{background:#fff;border-left:5px solid var(--maroon);border-radius:12px;padding:13px 15px;margin:4px 0 18px;font-size:13.5px;line-height:1.6;color:#5a5346}
@@ -273,9 +275,9 @@ const C={
     enroll:'암특정치료비 1천 (종합병원)',
     benefit:'1종 1천 → 2종 2천 → 3종 3천<br><b>→ 연 최고 4.5천</b>',
     fee:'83,575원'},
-  targ:{name:'표적항암약물치료비(연간1회한)', tag:'비싼 표적항암치료 집중보장',
-    desc:'비싼 비급여 표적항암 치료비 연 1회 보장',
-    enroll:'표적항암약물치료비 1천 (연간1회한)', benefit:'표적항암약물치료시 1천',
+  targ:{name:'표적항암약물허가치료비(연간1회한)', tag:'비싼 표적항암치료 집중보장',
+    desc:'장기적인 표적항암 치료에 대비해 연간 1회 보장',
+    enroll:'표적항암약물허가치료비 1천 (연간1회한)', benefit:'표적항암약물허가치료시 1천',
     feeUnknown:true},
   acc:{name:'암복합치료생활비', tag:'반복치료 대응',
     desc:'치료가 반복될수록 누적해서 최고 300%',
@@ -334,7 +336,7 @@ const MERIT={
   dx:'진단금에 양성자·표적 비급여 치료까지 한 담보로',
   surg:'암 수술 비용을 정액으로 직접 보장',
   spec:'5가지 주요 치료를 종합병원에서 폭넓게',
-  targ:'고가 비급여 표적항암 치료비를 정액 보장',
+  targ:'고가 표적항암 치료비를 정액 보장',
   acc:'치료가 반복될수록 누적해 최고 300%',
   spcl:'병원 제한 없이 복합치료를 저렴하게 보강',
   rad:'급여 항암 방사선·약물 치료비를 정액 보장',
@@ -346,7 +348,7 @@ const TAGS={
   dx:['진단','비급여표적','비급여양성자'],
   surg:['수술'],
   spec:['수술','방사선','약물','중환자','호스피스'],
-  targ:['비급여표적'],
+  targ:['표적항암'],
   acc:['수술','방사선','약물','중환자'],
   spcl:['수술','방사선','약물','중환자'],
   rad:['급여방사선','급여약물'],
