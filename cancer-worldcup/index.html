@@ -426,6 +426,19 @@ function showRound(text){
   setTimeout(()=>rp.classList.remove('on'),1150);
 }
 
+/* ===== 결과 집계 전송 (구글 스프레드시트) — 한 판 끝날 때 1회 ===== */
+const LOG_URL='https://script.google.com/macros/s/AKfycbxRkTKnAqSQE1Xv1yz6IUT3scIO9GySZKvdARdVylGhS45O43rqq-RUHHcEjoq1ccoybA/exec';
+function logResult(){
+  try{
+    if(!res['final'])return;
+    const champ=C[res['final'].winner].name, runner=C[res['final'].loser].name;
+    const picks=SCHED.map(s=>res[s.key]?C[res[s.key].winner].name:'').filter(Boolean);
+    fetch(LOG_URL,{method:'POST',mode:'no-cors',keepalive:true,
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({demo:DEMO[demo],champion:champ,runnerUp:runner,picks:picks})});
+  }catch(e){}
+}
+
 function cardHTML(id,side){
   const c=C[id];
   return `<div class="card side${side}" id="card_${side}" onclick="pick('${side}')">
@@ -488,7 +501,7 @@ function pick(side){
   setTimeout(()=>{
     banner.classList.remove('on'); if(vs)vs.classList.remove('burst');
     busy=false;cursor++;
-    if(cursor>=SCHED.length){renderEnding();show('ending');}
+    if(cursor>=SCHED.length){logResult();renderEnding();show('ending');}
     else if(SCHED[cursor].round!==SCHED[cursor-1].round){renderMatch();showRound(roundLabel(SCHED[cursor].round));}
     else renderMatch();
   },1900);
