@@ -432,10 +432,11 @@ function logResult(){
   try{
     if(!res['final'])return;
     const champ=C[res['final'].winner].name, runner=C[res['final'].loser].name;
-    const picks=SCHED.map(s=>res[s.key]?C[res[s.key].winner].name:'').filter(Boolean);
+    // 공동3등 = 4강에서 진 2개 (준결승 패자)
+    const third=[res['semi_0'],res['semi_1']].filter(Boolean).map(m=>C[m.loser].name);
     fetch(LOG_URL,{method:'POST',mode:'no-cors',keepalive:true,
       headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({demo:DEMO[demo],champion:champ,runnerUp:runner,picks:picks})});
+      body:JSON.stringify({demo:DEMO[demo],champion:champ,runnerUp:runner,picks:third})});
   }catch(e){}
 }
 
